@@ -20,6 +20,28 @@
 
 Благодаря этому мы сможем использовать **всю мощь PostgreSQL прямо из кода на Python** — просто, эффективно и без необходимости использовать ORM.
 
+## Установка библиотеки
+
+Прежде чем приступить к изучению возможностей адаптера `psycopg`, необходимо установить соответствующую библиотеку для Python.
+
+Как указано в официальной документации, сначала убедитесь, что версия менеджера пакетов `pip` не ниже 20.3:
+
+```bash
+pip install --upgrade pip
+```
+
+Затем установите модуль `psycopg[binary]`, который не требует наличия системных зависимостей:
+
+```bash
+pip install "psycopg[binary]"
+```
+
+Установите `psycopg_pool`:
+
+```bash
+pip install psycopg_pool
+```
+
 ## Основы API библиотеки `psycopg`
 
 Библиотека `psycopg` предоставляет несколько ключевых интерфейсов для работы с PostgreSQL в соответствии со стандартом [**Python DB API 2.0**](https://peps.python.org/pep-0249/).  
@@ -61,29 +83,24 @@ conn.close()
 - По умолчанию `psycopg` использует неавтоматические транзакции: нужно вызывать `conn.commit()` или `conn.rollback()`.
 
 Параметры подключения:
-
-```python
-psycopg.connect(
-    host="localhost",
-    port=5432,
-    user="postgres",
-    password="secret",
-    dbname="mydb",
-    connect_timeout=10,
-    application_name="myapp"
-)
-
-```
+- **host** — адрес сервера PostgreSQL (Например, `localhost` для локального подключения);
+- **port** — порт, на котором работает PostgreSQL (По умолчанию - 5432);
+- **user** — имя пользователя PostgreSQL;
+- **password** — пароль пользователя;
+- **dbname** — имя базы данных, к которой осуществляется подключение;
+- **connect_timeout** (необязательный параметр) — таймаут в секундах при установке соединения.
 
 Также можно использовать DSN-строку:
 
 ```python
-psycopg.connect("postgresql://postgres:secret@localhost:5432/mydb")
+psycopg.connect(conninfo="postgresql://postgres:secret@localhost:5432/mydb")
 ```
 
 ### 2. Пул подключений (рекомендуемый способ)
 
 Объект `ConnectionPool` из модуля `psycopg_pool` управляет множеством соединений с базой данных. Это более производительный и устойчивый способ подключения в реальных приложениях.
+
+pip install psycopg_pool
 
 #### Пример:
 
@@ -277,13 +294,11 @@ pool = ConnectionPool(
 
 ```python
 import os
-
 from dotenv import load_dotenv
 from fastapi import FastAPI, Response, status
+from config.db import pool
 
 load_dotenv()
-
-from config.db import pool
 
 app = FastAPI()
 port = int(os.getenv("PORT", 3000))
