@@ -139,7 +139,7 @@ DTO (Data Transfer Object) — это простой объект, которы�
 Создайте в папке `src/dto` (DTO - data transfer object) файл `auth_dto.py` и добавьте в него следующий код:
 
 ```python
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 import regex as re
 
 def username_validator(value: str) -> str:
@@ -163,23 +163,40 @@ class LoginDTO(BaseModel):
     user_name: str = Field(..., min_length=5, max_length=30)
     password: str = Field(..., min_length=5, max_length=30)
 
-    _validate_username = validator("user_name", allow_reuse=True)(username_validator)
-    _validate_password = validator("password", allow_reuse=True)(password_validator)
+    @field_validator("user_name")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        return username_validator(value)
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        return password_validator(value)
 
 class RegisterDTO(LoginDTO):
     password_confirm: str = Field(..., min_length=5, max_length=30)
     first_name: str = Field(..., min_length=1, max_length=30)
     last_name: str = Field(..., min_length=1, max_length=30)
 
-    _validate_password_confirm = validator("password_confirm", allow_reuse=True)(password_validator)
-    _validate_first_name = validator("first_name", allow_reuse=True)(name_validator)
-    _validate_last_name = validator("last_name", allow_reuse=True)(name_validator)
+    @field_validator("password_confirm")
+    @classmethod
+    def validate_password_confirm(cls, value: str) -> str:
+        return password_validator(value)
 
-    @validator("password_confirm")
-    def passwords_match(cls, v, values):
-        if "password" in values and v != values["password"]:
+    @field_validator("first_name")
+    @classmethod
+    def validate_first_name(cls, value: str) -> str:
+        return name_validator(value)
+
+    @field_validator("last_name")
+    @classmethod
+    def validate_last_name(cls, value: str) -> str:
+        return name_validator(value)
+
+    @model_validator(mode='after')
+    def passwords_match(self):
+        if self.password != self.password_confirm:
             raise ValueError("Passwords must match")
-        return v
+        return self
 ```
 
 Этот файл содержит схемы валидации для тела запроса (`request.body`) при авторизации пользователей.
@@ -217,8 +234,14 @@ class LoginDTO(BaseModel):
     user_name: str = Field(..., min_length=5, max_length=30)
     password: str = Field(..., min_length=5, max_length=30)
 
-    _validate_username = validator("user_name", allow_reuse=True)(username_validator)
-    _validate_password = validator("password", allow_reuse=True)(password_validator)
+    @field_validator("user_name")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        return username_validator(value)
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        return password_validator(value)
 ```
 
 Проверяет `user_name` и `password` при логине.
@@ -229,15 +252,26 @@ class RegisterDTO(LoginDTO):
     first_name: str = Field(..., min_length=1, max_length=30)
     last_name: str = Field(..., min_length=1, max_length=30)
 
-    _validate_password_confirm = validator("password_confirm", allow_reuse=True)(password_validator)
-    _validate_first_name = validator("first_name", allow_reuse=True)(name_validator)
-    _validate_last_name = validator("last_name", allow_reuse=True)(name_validator)
+    @field_validator("password_confirm")
+    @classmethod
+    def validate_password_confirm(cls, value: str) -> str:
+        return password_validator(value)
 
-    @validator("password_confirm")
-    def passwords_match(cls, v, values):
-        if "password" in values and v != values["password"]:
+    @field_validator("first_name")
+    @classmethod
+    def validate_first_name(cls, value: str) -> str:
+        return name_validator(value)
+
+    @field_validator("last_name")
+    @classmethod
+    def validate_last_name(cls, value: str) -> str:
+        return name_validator(value)
+
+    @model_validator(mode='after')
+    def passwords_match(self):
+        if self.password != self.password_confirm:
             raise ValueError("Passwords must match")
-        return v
+        return self
 ```
 
 Проверяет:
@@ -245,7 +279,7 @@ class RegisterDTO(LoginDTO):
 - `user_name`, `password`, `password_confirm` (по тем же схемам, что и при логине).
 - `first_name` и `last_name` — строки длиной от `1` до `30` символов, только буквенные символы, включая буквы любых алфавитов (`\p{L}`).
 
-Дополнительная проверка реализована через `@validator("password_confirm")`:
+Дополнительная проверка реализована через `@model_validator(mode='after')`:
 
 - `password` и `password_confirm` должны совпадать, иначе будет выброшена ошибка "Passwords must match".
 
