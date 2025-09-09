@@ -583,7 +583,7 @@ class ReadUserDTO(BaseModel):
     status: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 ```
 
 Далее необходимо обновить `app.py`, добавив две строки (выделены цветом):
