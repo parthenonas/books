@@ -1,0 +1,38 @@
+<svg width="600" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .entity-box { fill: #fff; stroke: #000; stroke-width: 2; rx: 10; ry: 10; }
+      .separator-line { stroke: #000; stroke-width: 1; }
+      .connection-line { stroke: #000; stroke-width: 2; fill: none; }
+      .text-title { font-family: sans-serif; font-size: 16px; font-weight: bold; text-anchor: middle; }
+      .text-attr { font-family: sans-serif; font-size: 14px; text-anchor: start; }
+      .text-label { font-family: sans-serif; font-size: 14px; text-anchor: middle; fill: #333; background-color: #fff; }
+      .dot { fill: #000; }
+    </style>
+  </defs>
+
+  <rect class="entity-box" x="50" y="50" width="200" height="200" />
+  <line class="separator-line" x1="50" y1="90" x2="250" y2="90" />
+  <text class="text-title" x="150" y="80">Отдел</text>
+  <text class="text-attr" x="60" y="115">ID_Отдела (PK)</text>
+  <text class="text-attr" x="60" y="140">Название</text>
+  <text class="text-attr" x="60" y="165">Расположение</text>
+  <text class="text-attr" x="60" y="190">Бюджет</text>
+  <text class="text-attr" x="60" y="215">Дата_Основания</text>
+  <text class="text-attr" x="60" y="240">Конт. Телефон</text>
+
+  <rect class="entity-box" x="350" y="50" width="200" height="200" />
+  <line class="separator-line" x1="350" y1="90" x2="550" y2="90" />
+  <text class="text-title" x="450" y="80">Сотрудник</text>
+  <text class="text-attr" x="360" y="115">ID_Сотрудника (PK)</text>
+  <text class="text-attr" x="360" y="140">ФИО</text>
+  <text class="text-attr" x="360" y="165">Должность</text>
+  <text class="text-attr" x="360" y="190">Зарплата</text>
+  <text class="text-attr" x="360" y="215">Дата_Найма</text>
+  <text class="text-attr" x="360" y="240">ID_Отдела (FK)</text>
+
+  <path class="connection-line" d="M 250 150 L 350 150" />
+  <circle class="dot" cx="250" cy="150" r="6" />
+
+  <text class="text-label" x="300" y="138">состоит из</text>
+</svg>

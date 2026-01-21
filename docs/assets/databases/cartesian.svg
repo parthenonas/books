@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520">
+  <defs>
+    <marker id="smallArrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 z" fill="#3b82f6"/>
+    </marker>
+  </defs>
+
+  <g transform="translate(20, 50)">
+    <text x="110" y="-15" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af" text-anchor="middle">СУЩНОСТЬ А</text>
+    
+    <g>
+        <rect x="0" y="0" width="220" height="30" fill="#e0e7ff"/>
+        <line x1="60" y1="0" x2="60" y2="30" stroke="#3b82f6" stroke-width="2"/>
+        <text x="30" y="19" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af" text-anchor="middle">ID</text>
+        <text x="140" y="19" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af" text-anchor="middle">ДАННЫЕ</text>
+
+        <rect x="0" y="30" width="220" height="30" fill="#1e3a8a"/>
+        <line x1="60" y1="30" x2="60" y2="60" stroke="#ffffff" stroke-width="1"/>
+        <text x="30" y="49" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">1</text>
+        <text x="140" y="49" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Атрибут А1</text>
+
+        <rect x="0" y="60" width="220" height="30" fill="#1e3a8a"/>
+        <line x1="0" y1="60" x2="220" y2="60" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+        <line x1="60" y1="60" x2="60" y2="90" stroke="#ffffff" stroke-width="1"/>
+        <text x="30" y="79" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">2</text>
+        <text x="140" y="79" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Атрибут А2</text>
+    </g>
+    <rect x="0" y="0" width="220" height="90" fill="none" stroke="#3b82f6" stroke-width="3"/>
+  </g>
+
+  <g transform="translate(520, 50)">
+    <text x="110" y="-15" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af" text-anchor="middle">СУЩНОСТЬ Б</text>
+    
+    <g>
+        <rect x="0" y="0" width="220" height="30" fill="#e0e7ff"/>
+        <line x1="60" y1="0" x2="60" y2="30" stroke="#3b82f6" stroke-width="2"/>
+        <text x="30" y="19" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af" text-anchor="middle">ID</text>
+        <text x="140" y="19" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af" text-anchor="middle">ДАННЫЕ</text>
+
+        <rect x="0" y="30" width="220" height="30" fill="#3b82f6"/>
+        <line x1="60" y1="30" x2="60" y2="60" stroke="#ffffff" stroke-width="1"/>
+        <text x="30" y="49" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">X</text>
+        <text x="140" y="49" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Атрибут Б1</text>
+
+        <rect x="0" y="60" width="220" height="30" fill="#3b82f6"/>
+        <line x1="0" y1="60" x2="220" y2="60" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+        <line x1="60" y1="60" x2="60" y2="90" stroke="#ffffff" stroke-width="1"/>
+        <text x="30" y="79" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Y</text>
+        <text x="140" y="79" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Атрибут Б2</text>
+    </g>
+    <rect x="0" y="0" width="220" height="90" fill="none" stroke="#3b82f6" stroke-width="3"/>
+  </g>
+
+  <path d="M130,140 L130,220 L340,275" fill="none" stroke="#3b82f6" stroke-width="3" marker-end="url(#smallArrow)"/>
+  <path d="M630,140 L630,220 L420,275" fill="none" stroke="#3b82f6" stroke-width="3" marker-end="url(#smallArrow)"/>
+  
+  <circle cx="380" cy="210" r="25" fill="#ffffff" stroke="#3b82f6" stroke-width="3"/>
+  <text x="380" y="222" font-family="Arial" font-size="34" font-weight="bold" fill="#1e40af" text-anchor="middle">×</text>
+
+  <g transform="translate(250, 280)">
+    <text x="130" y="-15" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af" text-anchor="middle">РЕЗУЛЬТАТ</text>
+    
+    <g>
+        <rect x="0" y="0" width="260" height="30" fill="#e0e7ff"/>
+        <line x1="130" y1="0" x2="130" y2="30" stroke="#3b82f6" stroke-width="2"/>
+        <text x="65" y="19" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af" text-anchor="middle">СУЩНОСТЬ А</text>
+        <text x="195" y="19" font-family="Arial" font-size="12" font-weight="bold" fill="#1e40af" text-anchor="middle">СУЩНОСТЬ Б</text>
+
+        <g>
+            <rect x="0" y="30" width="130" height="30" fill="#1e3a8a"/>
+            <text x="65" y="49" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">1 / А1</text>
+            <rect x="130" y="30" width="130" height="30" fill="#3b82f6"/>
+            <text x="195" y="49" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">X / Б1</text>
+        </g>
+
+        <g>
+            <rect x="0" y="60" width="130" height="30" fill="#1e3a8a"/>
+            <line x1="0" y="60" x2="130" y2="60" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+            <text x="65" y="79" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">1 / А1</text>
+            
+            <rect x="130" y="60" width="130" height="30" fill="#3b82f6"/>
+            <line x1="130" y1="60" x2="260" y2="60" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+            <text x="195" y="79" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Y / Б2</text>
+        </g>
+        
+        <g>
+            <rect x="0" y="90" width="130" height="30" fill="#1e3a8a"/>
+            <line x1="0" y1="90" x2="130" y2="90" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+            <text x="65" y="109" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">2 / А2</text>
+            
+            <rect x="130" y="90" width="130" height="30" fill="#3b82f6"/>
+            <line x1="130" y1="90" x2="260" y2="90" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+            <text x="195" y="109" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">X / Б1</text>
+        </g>
+
+        <g>
+            <rect x="0" y="120" width="130" height="30" fill="#1e3a8a"/>
+            <line x1="0" y1="120" x2="130" y2="120" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+            <text x="65" y="139" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">2 / А2</text>
+            
+            <rect x="130" y="120" width="130" height="30" fill="#3b82f6"/>
+            <line x1="130" y1="120" x2="260" y2="120" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+            <text x="195" y="139" font-family="Arial" font-size="12" fill="#ffffff" text-anchor="middle">Y / Б2</text>
+        </g>
+        
+        <line x1="130" y1="30" x2="130" y2="150" stroke="#ffffff" stroke-width="1"/>
+    </g>
+    <rect x="0" y="0" width="260" height="150" fill="none" stroke="#3b82f6" stroke-width="3"/>
+  </g>
+
+</svg>

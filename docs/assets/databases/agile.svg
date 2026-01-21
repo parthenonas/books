@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 550">
+  <defs>
+    <marker id="arrow-solid" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3b82f6" />
+    </marker>
+    <marker id="arrow-dashed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3b82f6" />
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#ffffff" />
+
+  <g transform="translate(300, 275)">
+    <circle r="70" fill="#ffffff" stroke="#3b82f6" stroke-width="3" />
+    <text x="0" y="-5" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e40af" text-anchor="middle">EVOLUTION</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="12" fill="#1e40af" text-anchor="middle">Непрерывный цикл</text>
+  </g>
+
+  <g transform="translate(300, 80)">
+    <rect x="-120" y="-40" width="240" height="80" rx="10" fill="#3b82f6" />
+    <text x="0" y="-10" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">1. TECH STACK &amp; CODE</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">Code-First / ORM / Гибриды</text>
+  </g>
+
+  <g transform="translate(500, 450)">
+    <rect x="-120" y="-40" width="240" height="80" rx="10" fill="#3b82f6" />
+    <text x="0" y="-10" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">2. РЕАЛИЗАЦИЯ</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">Модули / Профиль нагрузки</text>
+  </g>
+
+  <g transform="translate(100, 450)">
+    <rect x="-120" y="-40" width="240" height="80" rx="10" fill="#3b82f6" />
+    <text x="0" y="-10" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">3. РЕФАКТОРИНГ</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">Миграции / Оптимизация</text>
+  </g>
+
+  <path d="M 430,90 Q 580,150 560,400" fill="none" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-solid)" />
+  
+  <path d="M 400,490 Q 300,530 200,490" fill="none" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-solid)" />
+
+  <path d="M 40,400 Q 20,150 170,90" fill="none" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-solid)" />
+
+
+  <path d="M 480,400 Q 480,200 380,130" fill="none" stroke="#3b82f6" stroke-width="3" stroke-dasharray="8,5" marker-end="url(#arrow-dashed)" />
+  
+  <path d="M 230,440 Q 300,400 370,440" fill="none" stroke="#3b82f6" stroke-width="3" stroke-dasharray="8,5" marker-end="url(#arrow-dashed)" />
+  
+  <path d="M 210,130 Q 120,200 120,400" fill="none" stroke="#3b82f6" stroke-width="3" stroke-dasharray="8,5" marker-end="url(#arrow-dashed)" />
+
+</svg>
