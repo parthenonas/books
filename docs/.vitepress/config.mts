@@ -7,11 +7,11 @@ export default withMermaid(
   defineConfig({
     title: "CS Docs",
     description: "Открытые занятия по компьютерным наукам",
+
     themeConfig: {
+      outline: "deep",
       i18nRouting: true,
-      socialLinks: [
-        { icon: "github", link: "https://github.com/vuejs/vitepress" },
-      ],
+      socialLinks: [],
       nav: [
         { text: "Главная", link: "/" },
         {
@@ -26,8 +26,10 @@ export default withMermaid(
           items: [
             {
               text: "Основы баз данных",
+              collapsed: false,
               items: [
                 {
+                  collapsed: false,
                   text: "Введение в базы данных",
                   items: [
                     {
@@ -41,6 +43,7 @@ export default withMermaid(
                   ],
                 },
                 {
+                  collapsed: true,
                   text: "Реляционная модель данных",
                   items: [
                     {
@@ -54,6 +57,7 @@ export default withMermaid(
                   ],
                 },
                 {
+                  collapsed: true,
                   text: "Разработка информационно-логической модели БД",
                   link: "/databases/essentials/erd",
                 },
@@ -61,36 +65,58 @@ export default withMermaid(
             },
             {
               text: "Основы языка SQL",
+              collapsed: true,
               items: [
                 {
+                  collapsed: false,
                   text: "Основы языка SQL",
-                  link: "/databases/sql/essentials",
+                  items: [
+                    {
+                      text: "Типы данных и операторы СУБД PostgreSQL",
+                      link: "/databases/sql/essentials/data-types",
+                    },
+                    {
+                      text: "SQL-команды определения данных",
+                      link: "/databases/sql/essentials/ddl",
+                    },
+                    {
+                      text: "SQL-команды манипулирования данными",
+                      link: "/databases/sql/essentials/dml",
+                    },
+                  ],
                 },
                 {
+                  collapsed: true,
                   text: "Выборка данных",
                   link: "/databases/sql/single-table-select",
                 },
                 {
+                  collapsed: true,
                   text: "Встроенные функции СУБД PostgreSQL",
                   link: "/databases/sql/functions",
                 },
                 {
+                  collapsed: true,
                   text: "Многотабличные запросы",
                   link: "/databases/sql/multitable-select",
                 },
                 {
+                  collapsed: true,
                   text: "Подзапросы",
                   link: "/databases/sql/subqueries",
                 },
                 {
+                  collapsed: true,
                   text: "Разработка таблиц",
                   link: "/databases/sql/create-table",
                 },
                 {
+                  collapsed: true,
                   text: "Модификация данных",
                   link: "/databases/sql/data-modification",
                 },
                 {
+                  collapsed: true,
                   text: "Индексы, представления и транзакции",
                   link: "/databases/sql/indexes-views-transactions",
                 },
@@ -98,20 +124,25 @@ export default withMermaid(
             },
             {
               text: "Основы организации и администрирования СУБД PostgreSQL",
+              collapsed: true,
               items: [
                 {
+                  collapsed: true,
                   text: "Организация данных в СУБД PostgreSQL",
                   link: "/databases/administration/essentials",
                 },
                 {
+                  collapsed: true,
                   text: "Работа со средствами администрирования СУБД PostgreSQL",
                   link: "/databases/administration/tooling",
                 },
                 {
+                  collapsed: true,
                   text: "Управление доступом к объектам БД",
                   link: "/databases/administration/access-control",
                 },
                 {
+                  collapsed: true,
                   text: "Конфигурирование сервера",
                   link: "/databases/administration/configuration",
                 },
@@ -119,54 +150,67 @@ export default withMermaid(
             },
             {
               text: "Нереляционные базы данных",
+              collapsed: true,
               items: [
                 {
+                  collapsed: true,
                   text: "Основы NoSQL систем",
                   link: "/databases/nosql/essentials",
                 },
                 {
+                  collapsed: true,
                   text: "Clickhouse",
                   items: [
                     {
+                      collapsed: true,
                       text: "Основы",
                       link: "/databases/nosql/clickhouse/essentials",
                     },
                     {
+                      collapsed: true,
                       text: "Структура базы данных",
                       link: "/databases/nosql/clickhouse/structure",
                     },
                     {
+                      collapsed: true,
                       text: "Сравнение с PostgreSQL",
                       link: "/databases/nosql/clickhouse/postgres-compare",
                     },
                   ],
                 },
                 {
+                  collapsed: true,
                   text: "Работа с колоночной СУБД Hbase",
                   link: "/databases/nosql/hbase",
                 },
                 {
                   text: "Работа с документной СУБД MongoDB",
+                  collapsed: true,
                   items: [
                     {
+                      collapsed: true,
                       text: "Основы",
                       link: "/databases/nosql/mongodb/essentials",
                     },
                     {
+                      collapsed: true,
                       text: "Создание, редактирование и удаление данных. Индексы",
                       link: "/databases/nosql/mongodb/crud-and-indexes",
                     },
                     {
+                      collapsed: true,
                       text: "Транзакции",
                       link: "/databases/nosql/mongodb/transactions",
                     },
                     {
+                      collapsed: true,
                       text: "Сравнение с PostgreSQL",
                       link: "/databases/nosql/mongodb/postgres-compare",
                     },
                   ],
                 },
                 {
+                  collapsed: true,
                   text: "Работа с большими объемами данных в реляционных и нереляционных СУБД",
                   link: "/databases/nosql/comparation",
                 },
@@ -174,22 +218,28 @@ export default withMermaid(
             },
             {
               text: "Разработка прикладных программ",
+              collapsed: true,
               items: [
                 {
+                  collapsed: true,
                   text: "Разработка функций и триггеров",
                   link: "/databases/development/plpgsql",
                 },
                 {
                   text: "Python",
+                  collapsed: true,
                   items: [
                     {
                       text: "Проектирование web-приложения для доступа к базе данных",
+                      collapsed: true,
                       items: [
                         {
+                          collapsed: true,
                           text: "Установка библиотек и подключение базы данных к приложению",
                           link: "/databases/development/python/design/database-connection",
                         },
                         {
+                          collapsed: true,
                           text: "Основы работы в ПО Postman",
                           link: "/databases/development/python/design/postman",
                         },
@@ -197,16 +247,20 @@ export default withMermaid(
                     },
                     {
                       text: "Разработка web-приложения для доступа к базе данных",
+                      collapsed: true,
                       items: [
                         {
+                          collapsed: true,
                           text: "Разработка слоя репозиториев web-приложения",
                           link: "/databases/development/python/coding/repository",
                         },
                         {
+                          collapsed: true,
                           text: "Разработка функционального слоя web-приложения",
                           link: "/databases/development/python/coding/service",
                         },
                         {
+                          collapsed: true,
                           text: "Разработка слоя контроллеров web-приложения",
                           link: "/databases/development/python/coding/controller",
                         },
@@ -216,32 +270,40 @@ export default withMermaid(
                 },
                 {
                   text: "JavaScript",
+                  collapsed: true,
                   items: [
                     {
                       text: "Проектирование web-приложения для доступа к базе данных",
+                      collapsed: true,
                       items: [
                         {
+                          collapsed: true,
                           text: "Установка библиотек и подключение базы данных к приложению",
                           link: "/databases/development/js/design/database-connection",
                         },
                         {
+                          collapsed: true,
                           text: "Основы работы в ПО Postman",
                           link: "/databases/development/js/design/postman",
                         },
                       ],
                     },
                     {
+                      collapsed: true,
                       text: "Разработка web-приложения для доступа к базе данных",
                       items: [
                         {
+                          collapsed: true,
                           text: "Разработка слоя репозиториев web-приложения",
                           link: "/databases/development/js/coding/repository",
                         },
                         {
+                          collapsed: true,
                           text: "Разработка функционального слоя web-приложения",
                           link: "/databases/development/js/coding/service",
                         },
                         {
+                          collapsed: true,
                           text: "Разработка слоя контроллеров web-приложения",
                           link: "/databases/development/js/coding/controller",
                         },
