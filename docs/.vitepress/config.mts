@@ -6,6 +6,7 @@ import mathjax3 from "markdown-it-mathjax3";
 export default withMermaid(
   defineConfig({
     title: "CS Docs",
+    base: "/books/",
     description: "Открытые занятия по компьютерным наукам",
 
     themeConfig: {
