@@ -42,6 +42,29 @@ const state = ref({
   isBlocked: false,
 });
 
+const timeLeft = ref("");
+let timerInterval: any = null;
+
+function updateTimer() {
+  if (status.value !== "IN_PROGRESS") return;
+
+  const limitMinutes = testData.value.time_limit || 20;
+  const limitMs = limitMinutes * 60 * 1000;
+
+  const elapsed = Date.now() - state.value.startTime;
+  const remaining = limitMs - elapsed;
+
+  if (remaining <= 0) {
+    timeLeft.value = "00:00";
+    finishTest();
+    alert("Время вышло! Тест завершен принудительно.");
+  } else {
+    const m = Math.floor(remaining / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    timeLeft.value = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
+}
+
 const fileName = props.jsonPath.replace(/^\//, "");
 const storageKey = `quiz_state_${fileName}`;
 
@@ -81,7 +104,13 @@ onMounted(async () => {
       } else if (state.value.endTime > 0) {
         status.value = "COMPLETED";
       } else {
-        status.value = state.value.startTime > 0 ? "IN_PROGRESS" : "READY";
+        if (state.value.startTime > 0) {
+          status.value = "IN_PROGRESS";
+          updateTimer();
+          timerInterval = setInterval(updateTimer, 1000);
+        } else {
+          status.value = "READY";
+        }
       }
     } else {
       prepareQuestions();
@@ -139,6 +168,9 @@ function startTest() {
   state.value.lastQuestionEntryTime = Date.now();
   status.value = "IN_PROGRESS";
   addCheatListeners();
+
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
 }
 
 function nextQuestion() {
@@ -197,6 +229,7 @@ function removeCheatListeners() {
 }
 
 async function finishTest() {
+  clearInterval(timerInterval);
   recordTime();
   removeCheatListeners();
   state.value.endTime = Date.now();
@@ -206,11 +239,13 @@ async function finishTest() {
   for (const q of state.value.questions) {
     if (q.type === "sql-select") {
       try {
-        const studentSql = state.value.answers[q.id];
+        let studentSql = state.value.answers[q.id];
         if (!studentSql || !studentSql.trim()) {
           q.isCorrect = false;
           continue;
         }
+
+        studentSql = studentSql.trim().replace(/;$/, "");
 
         const db = new PGlite();
         await db.waitReady;
@@ -227,7 +262,9 @@ async function finishTest() {
           continue;
         }
 
-        const correctQuery = q.correct_query;
+        let correctQuery = q.correct_query;
+
+        correctQuery = correctQuery.trim().replace(/;$/, "");
 
         const checkExtra = (await db.query(`
             SELECT count(*) as cnt 
@@ -296,6 +333,14 @@ const formatTime = (ms: number) => {
   return `${m}м ${s % 60}с`;
 };
 
+function getSelectedOptionTexts(q: any, selectedIds: string[]) {
+  if (!q.options) return [];
+  return q.options
+    .filter((opt: any) => selectedIds.includes(opt.id))
+    .map((opt: any) => opt.text)
+    .join(", ");
+}
+
 onUnmounted(() => {
   removeCheatListeners();
 });
@@ -338,8 +383,16 @@ onUnmounted(() => {
           <div class="quiz-header">
             <span>{{ testData.title }}</span>
             <span
-              >Вопрос {{ state.currentIndex + 1 }} из
-              {{ state.questions.length }}</span
+              style="
+                font-family: monospace;
+                font-size: 1.1em;
+                color: var(--vp-c-brand-1);
+              "
+            >
+              ⏳ {{ timeLeft }}
+            </span>
+            <span
+              >{{ state.currentIndex + 1 }} / {{ state.questions.length }}</span
             >
           </div>
 
@@ -413,14 +466,42 @@ onUnmounted(() => {
               class="q-report-item"
               :class="q.isCorrect ? 'correct' : 'wrong'"
             >
-              <h4>{{ idx + 1 }}. {{ q.text }}</h4>
-              <p>Время: {{ formatTime(state.questionTimings[q.id]) }}</p>
-              <p>
-                Результат: {{ q.isCorrect ? "✅ Верно" : "❌ Неверно" }} (+{{
-                  q.isCorrect ? q.points : 0
-                }}
-                баллов)
-              </p>
+              <div class="q-header">
+                <h4>{{ idx + 1 }}. {{ q.text }}</h4>
+                <span class="q-status">{{ q.isCorrect ? "✅" : "❌" }}</span>
+              </div>
+
+              <div v-if="q.type === 'sql-select'" class="answer-details">
+                <div class="code-block">
+                  <strong>Твой запрос:</strong>
+                  <pre>{{ state.answers[q.id] || "—" }}</pre>
+                </div>
+              </div>
+
+              <div v-else class="answer-details">
+                <p>
+                  <strong>Твой ответ:</strong>
+                  {{
+                    getSelectedOptionTexts(q, state.answers[q.id] || []) ||
+                    "(нет ответа)"
+                  }}
+                </p>
+                <p v-if="!q.isCorrect" style="font-size: 0.8em; opacity: 0.7">
+                  (Ответ не совпал с эталоном)
+                </p>
+              </div>
+
+              <div class="q-footer">
+                <small
+                  >Время: {{ formatTime(state.questionTimings[q.id]) }}</small
+                >
+                <small v-if="q.isCorrect" style="color: var(--vp-c-success-1)"
+                  >+{{ q.points }} баллов</small
+                >
+                <small v-else style="color: var(--vp-c-danger-1)"
+                  >0 баллов</small
+                >
+              </div>
             </div>
           </div>
 
@@ -659,5 +740,43 @@ onUnmounted(() => {
   background: var(--vp-c-bg-alt);
   padding: 10px;
   border-radius: 4px;
+}
+
+.q-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.q-status {
+  font-size: 1.2rem;
+}
+
+.answer-details {
+  background: var(--vp-c-bg);
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
+.code-block pre {
+  background: var(--vp-c-bg-alt);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: monospace;
+  margin: 5px 0 10px 0;
+  white-space: pre-wrap;
+}
+
+.q-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  border-top: 1px solid var(--vp-c-border);
+  padding-top: 5px;
+  opacity: 0.8;
 }
 </style>
