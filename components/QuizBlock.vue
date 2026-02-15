@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
+
+import { PGlite } from "@electric-sql/pglite";
+import QuestionMultipleChoice from "./QuestionMultipleChoice.vue";
+import QuestionSqlSelect from "./QuestionSqlSelect.vue";
 
 const props = defineProps<{
   jsonPath: string;
@@ -9,6 +13,7 @@ const props = defineProps<{
 
 const isChrome =
   /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+
 const status = ref<
   | "INIT"
   | "LOADING"
@@ -18,11 +23,12 @@ const status = ref<
   | "BLOCKED"
   | "COMPLETED_VIEW"
 >("INIT");
+
 const testData = ref<any>(null);
 
 const state = ref({
   questions: [] as any[],
-  answers: {} as Record<string, string[]>,
+  answers: {} as Record<string, any>,
   currentIndex: 0,
   startTime: 0,
   endTime: 0,
@@ -47,14 +53,11 @@ async function sha256(message: string) {
 }
 
 onMounted(async () => {
-  if (!isChrome) {
-    return;
-  }
+  if (!isChrome) return;
 
   status.value = "LOADING";
   try {
     const fullUrl = `${(import.meta as any).env.BASE_URL}quizzes/${fileName}`;
-
     const res = await fetch(fullUrl, { cache: "no-store" });
     if (!res.ok) {
       status.value = "INIT";
@@ -121,10 +124,13 @@ function prepareQuestions() {
 
   state.value.questions = selected;
   selected.forEach((q) => {
-    state.value.answers[q.id] = [];
+    state.value.answers[q.id] = q.type === "sql-select" ? "" : [];
     state.value.questionTimings[q.id] = 0;
     state.value.maxScore += q.points;
-    q.options.sort(() => Math.random() - 0.5);
+
+    if (q.options) {
+      q.options.sort(() => Math.random() - 0.5);
+    }
   });
 }
 
@@ -163,7 +169,7 @@ function checkFocus() {
   if (document.visibilityState === "hidden" || !document.hasFocus()) {
     state.value.cheatAttempts++;
     state.value.cheatLogs.push(
-      `Потеря фокуса: ${new Date().toLocaleTimeString()}`,
+      `Попытка списывания: ${new Date().toLocaleTimeString()}`,
     );
 
     const maxCheats = testData.value.max_cheat_attempts;
@@ -198,11 +204,72 @@ async function finishTest() {
   let totalScore = 0;
 
   for (const q of state.value.questions) {
-    const userAnswers = state.value.answers[q.id] || [];
-    userAnswers.sort();
-    const hash = await sha256(userAnswers.join(","));
+    if (q.type === "sql-select") {
+      try {
+        const studentSql = state.value.answers[q.id];
+        if (!studentSql || !studentSql.trim()) {
+          q.isCorrect = false;
+          continue;
+        }
 
-    q.isCorrect = hash === q.correct_hash;
+        const db = new PGlite();
+        await db.waitReady;
+
+        const initSql = q.init_sql || [];
+        for (const sql of initSql) {
+          await db.exec(sql);
+        }
+
+        try {
+          await db.query(studentSql);
+        } catch (e) {
+          q.isCorrect = false;
+          continue;
+        }
+
+        const correctQuery = q.correct_query;
+
+        const checkExtra = (await db.query(`
+            SELECT count(*) as cnt 
+            FROM ((${studentSql}) EXCEPT ALL (${correctQuery})) as diff
+        `)) as any;
+
+        const checkMissing = (await db.query(`
+            SELECT count(*) as cnt 
+            FROM ((${correctQuery}) EXCEPT ALL (${studentSql})) as diff
+        `)) as any;
+
+        const extraCount = parseInt(checkExtra.rows[0].cnt as string);
+        const missingCount = parseInt(checkMissing.rows[0].cnt as string);
+
+        let dataCorrect = extraCount === 0 && missingCount === 0;
+
+        if (dataCorrect && q.sort_required) {
+          const resStudent = await db.query(studentSql);
+          const resCorrect = await db.query(correctQuery);
+          if (
+            JSON.stringify(resStudent.rows) !== JSON.stringify(resCorrect.rows)
+          ) {
+            dataCorrect = false;
+          }
+        }
+
+        q.isCorrect = dataCorrect;
+      } catch (err) {
+        console.error("Ошибка проверки SQL:", err);
+        q.isCorrect = false;
+      }
+    } else {
+      const userAnswers = state.value.answers[q.id] || [];
+      if (Array.isArray(userAnswers)) {
+        userAnswers.sort();
+        const hash = await sha256(userAnswers.join(","));
+        q.isCorrect = hash === q.correct_hash;
+      } else {
+        q.isCorrect = false;
+      }
+    }
+
     if (q.isCorrect) {
       totalScore += q.points;
     }
@@ -229,13 +296,6 @@ const formatTime = (ms: number) => {
   return `${m}м ${s % 60}с`;
 };
 
-function toggleAnswer(qId: string, optId: string) {
-  const arr = state.value.answers[qId];
-  const idx = arr.indexOf(optId);
-  if (idx === -1) arr.push(optId);
-  else arr.splice(idx, 1);
-}
-
 onUnmounted(() => {
   removeCheatListeners();
 });
@@ -257,7 +317,7 @@ onUnmounted(() => {
 
       <div v-if="state.isBlocked">
         <p style="color: var(--vp-c-danger-1); font-weight: bold">
-          Тест заблокирован
+          ❌ Тест аннулирован (списывание)
         </p>
         <button @click="status = 'BLOCKED'" class="btn danger">
           Подробнее
@@ -284,31 +344,18 @@ onUnmounted(() => {
           </div>
 
           <div class="question-content">
-            <h2>{{ state.questions[state.currentIndex].text }}</h2>
-            <p class="points-hint">
-              Баллов за вопрос: {{ state.questions[state.currentIndex].points }}
-            </p>
+            <QuestionSqlSelect
+              v-if="state.questions[state.currentIndex].type === 'sql-select'"
+              :question="state.questions[state.currentIndex]"
+              :init-sql="testData.init_sql || []"
+              v-model="state.answers[state.questions[state.currentIndex].id]"
+            />
 
-            <div class="options-list">
-              <label
-                v-for="opt in state.questions[state.currentIndex].options"
-                :key="opt.id"
-                class="option-item"
-              >
-                <input
-                  type="checkbox"
-                  :checked="
-                    state.answers[
-                      state.questions[state.currentIndex].id
-                    ].includes(opt.id)
-                  "
-                  @change="
-                    toggleAnswer(state.questions[state.currentIndex].id, opt.id)
-                  "
-                />
-                <span class="opt-text">{{ opt.text }}</span>
-              </label>
-            </div>
+            <QuestionMultipleChoice
+              v-else
+              :question="state.questions[state.currentIndex]"
+              v-model="state.answers[state.questions[state.currentIndex].id]"
+            />
           </div>
 
           <div class="quiz-footer">
@@ -506,47 +553,6 @@ onUnmounted(() => {
   padding: 40px;
   flex-grow: 1;
   overflow-y: auto;
-}
-
-.question-content h2 {
-  margin-bottom: 10px;
-  font-size: 1.5rem;
-  color: var(--vp-c-text-1);
-}
-
-.points-hint {
-  color: var(--vp-c-text-2);
-  margin-bottom: 30px;
-  font-size: 0.9rem;
-}
-
-.options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.option-item {
-  display: flex;
-  align-items: center;
-  padding: 15px;
-  background: var(--vp-c-bg-alt);
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid var(--vp-c-border);
-  transition: 0.2s;
-  color: var(--vp-c-text-1);
-}
-
-.option-item:hover {
-  border-color: var(--vp-c-brand-1);
-  background: var(--vp-c-bg-soft);
-}
-
-.option-item input {
-  margin-right: 15px;
-  transform: scale(1.3);
-  cursor: pointer;
 }
 
 .quiz-footer {
