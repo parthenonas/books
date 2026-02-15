@@ -1,6 +1,6 @@
+import mathjax3 from "markdown-it-mathjax3";
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
-import mathjax3 from "markdown-it-mathjax3";
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid(
@@ -69,7 +69,7 @@ export default withMermaid(
               collapsed: true,
               items: [
                 {
-                  collapsed: false,
+                  collapsed: true,
                   text: "Основы языка SQL",
                   items: [
                     {
@@ -106,17 +106,31 @@ export default withMermaid(
                 },
                 {
                   collapsed: true,
-                  text: "Встроенные функции СУБД PostgreSQL",
+                  text: "Многотабличные запросы",
+                  items: [
+                    {
+                      text: "Комбинирование наборов данных",
+                      link: "/databases/sql/multi-table-select/sets",
+                    },
+                    {
+                      text: "Основы разработки многотабличных запросов",
+                      link: "/databases/sql/multi-table-select/joins",
+                    },
+                    {
+                      text: "Разработка многотабличных запросов",
+                      link: "/databases/sql/multi-table-select/task",
+                    },
+                  ],
+                },
+                {
+                  collapsed: true,
+                  text: "Запросы с функциями",
                   link: "/databases/sql/functions",
                 },
+
                 {
                   collapsed: true,
-                  text: "Многотабличные запросы",
-                  link: "/databases/sql/multitable-select",
-                },
-                {
-                  collapsed: true,
-                  text: "Подзапросы",
+                  text: "Запросы с подзапросами",
                   link: "/databases/sql/subqueries",
                 },
                 {
@@ -128,11 +142,6 @@ export default withMermaid(
                   collapsed: true,
                   text: "Модификация данных",
                   link: "/databases/sql/data-modification",
-                },
-                {
-                  collapsed: true,
-                  text: "Индексы, представления и транзакции",
-                  link: "/databases/sql/indexes-views-transactions",
                 },
               ],
             },
