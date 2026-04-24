@@ -3,6 +3,7 @@ from psycopg2.extras import RealDictCursor
 
 from databases.business_todo.src.db.connection import get_db_connection, release_db_connection
 
+
 @contextmanager
 def get_db_cursor():
     conn = get_db_connection()

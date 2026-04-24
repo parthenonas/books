@@ -1,25 +1,26 @@
 from datetime import timedelta
 
-from databases.business_todo.src.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token, \
+from databases.business_todo.src.core.security import (
+    verify_password,
+    get_password_hash,
+    create_access_token,
+    create_refresh_token,
     decode_token
+)
 from databases.business_todo.src.core.config import settings
 from databases.business_todo.src.repositories.user_repo import UserRepository
 from databases.business_todo.src.repositories.token_repo import TokenRepository
-from databases.business_todo.src.utils.validators import (
-    validate_email, validate_password, validate_name,
-    validate_role, validate_phone, ValidationError
-)
+from databases.business_todo.src.utils.validators import ValidationError
 
 
 class AuthService:
+    """Сервис для управления аутентификацией и авторизацией"""
 
     @staticmethod
     def login(email: str, password: str) -> dict:
-        email = validate_email(email)
-
-        if not password:
-            raise ValidationError("Password is required", "password")
-
+        """
+        Аутентификация пользователя по email и паролю
+        """
         user = UserRepository.get_by_email(email)
         if not user or not verify_password(password, user["password_hash"]):
             raise ValidationError("Invalid credentials")
@@ -46,15 +47,17 @@ class AuthService:
         }
 
     @staticmethod
-    def register(first_name: str, last_name: str, email: str, password: str,
-                 phone: str = None, role: str = "customer") -> dict:
-        first_name = validate_name(first_name, "First name")
-        last_name = validate_name(last_name, "Last name")
-        email = validate_email(email)
-        password = validate_password(password)
-        phone = validate_phone(phone)
-        role = validate_role(role)
-
+    def register(
+            first_name: str,
+            last_name: str,
+            email: str,
+            password: str,
+            phone: str = None,
+            role: str = "customer"
+    ) -> dict:
+        """
+        Регистрация нового пользователя
+        """
         if role not in ["customer", "executor"]:
             raise ValidationError("Invalid role for registration")
 
@@ -62,7 +65,8 @@ class AuthService:
         if existing:
             raise ValidationError("Email already registered", "email")
 
-        user = UserRepository.create(first_name, last_name, email, password, phone, role)
+        password_hash = get_password_hash(password)
+        user = UserRepository.create(first_name, last_name, email, password_hash, phone, role)
 
         access_token = create_access_token(
             data={"sub": str(user["user_id"]), "role": user["role"]},
@@ -84,11 +88,17 @@ class AuthService:
 
     @staticmethod
     def logout(user_id: int) -> dict:
+        """
+        Выход пользователя (удаление refresh токена)
+        """
         TokenRepository.delete_by_user_id(user_id)
         return {"message": "Logged out"}
 
     @staticmethod
     def refresh_token(refresh_token: str) -> dict:
+        """
+        Обновление access токена по refresh токену
+        """
         if not refresh_token:
             raise ValidationError("Refresh token required")
 

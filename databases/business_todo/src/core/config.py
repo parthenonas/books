@@ -9,6 +9,7 @@ ENV_PATH = BASE_DIR / ".env"
 
 load_dotenv(dotenv_path=ENV_PATH)
 
+
 class Settings:
     def __init__(self):
         self.HOST = os.getenv("HOST", "0.0.0.0")

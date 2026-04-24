@@ -1,6 +1,5 @@
 from typing import Optional, List, Tuple
 from datetime import datetime
-
 from databases.business_todo.src.db.context import get_db_cursor
 
 
@@ -43,10 +42,8 @@ class TaskRepository:
         with get_db_cursor() as cursor:
             cursor.execute(count_query.replace("t.*", "1"), params)
             total = cursor.fetchone()["count"]
-
             query += " ORDER BY t.created_at DESC LIMIT %s OFFSET %s"
             params.extend([limit, (page - 1) * limit])
-
             cursor.execute(query, params)
             tasks = cursor.fetchall()
 
@@ -68,15 +65,15 @@ class TaskRepository:
             return cursor.fetchone()
 
     @staticmethod
-    def create(task_text: str, description: str, customer_id: int, priority: str, payment: float,
+    def create(task_text: str, description: str, customer_id: int, priority: str,
                deadline: Optional[str]) -> dict:
         now = datetime.utcnow()
         with get_db_cursor() as cursor:
             cursor.execute(
-                """INSERT INTO tasks (task_text, description, customer_id, priority, payment, deadline, status, created_at, updated_at)
-                   VALUES (%s, %s, %s, %s, %s, %s, 'new', %s, %s)
+                """INSERT INTO tasks (task_text, description, customer_id, priority, deadline, status, created_at, updated_at)
+                   VALUES (%s, %s, %s, %s, %s, 'new', %s, %s)
                    RETURNING *""",
-                (task_text, description, customer_id, priority, payment, deadline, now, now)
+                (task_text, description, customer_id, priority, deadline, now, now)
             )
             return cursor.fetchone()
 
@@ -89,7 +86,6 @@ class TaskRepository:
             kwargs["completed_at"] = datetime.utcnow()
 
         kwargs["updated_at"] = datetime.utcnow()
-
         fields = ", ".join([f"{k} = %s" for k in kwargs.keys()])
         values = list(kwargs.values()) + [task_id]
 
@@ -105,3 +101,11 @@ class TaskRepository:
         with get_db_cursor() as cursor:
             cursor.execute("DELETE FROM tasks WHERE task_id = %s", (task_id,))
             return cursor.rowcount > 0
+
+
+@staticmethod
+def is_available_for_claim(task_id: int) -> bool:
+    task = TaskRepository.get_by_id(task_id)
+    if not task:
+        return False
+    return task["status"] == "new" and task["executor_id"] is None

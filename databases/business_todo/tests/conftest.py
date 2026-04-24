@@ -1,4 +1,3 @@
-# tests/conftest.py
 import os
 import sys
 from pathlib import Path
@@ -13,11 +12,12 @@ sys.path.insert(0, str(ROOT_DIR))
 
 os.environ["DB_NAME"] = "test_task_pool"
 
-with patch("psycopg2.connect") as mock_psycopg:
+# Мокаем psycopg2.connect ДО импорта приложения
+with patch("psycopg2.connect") as mock_connect:
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
-    mock_psycopg.return_value = mock_conn
+    mock_connect.return_value = mock_conn
 
     from databases.business_todo.src.main import app
     from databases.business_todo.src.core.config import get_settings
@@ -38,7 +38,7 @@ def client():
 @pytest.fixture
 def override_auth():
     def _override(user_id: int = 1, role: str = "customer"):
-        async def mock_user():
+        async def mock_get_current_user():
             return {
                 "user_id": user_id,
                 "role": role,
@@ -48,11 +48,16 @@ def override_auth():
                 "last_name": "User"
             }
 
-        app.dependency_overrides[get_current_user] = mock_user
-        yield
-        app.dependency_overrides.clear()
+        app.dependency_overrides[get_current_user] = mock_get_current_user
 
     return _override
+
+
+@pytest.fixture(autouse=True)
+def cleanup_dependencies():
+    """Очищает dependency_overrides после каждого теста"""
+    yield
+    app.dependency_overrides.clear()
 
 
 def create_test_token(user_id: int = 1, role: str = "customer"):

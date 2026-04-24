@@ -11,9 +11,9 @@ app = FastAPI(
 
 app.include_router(api_router, prefix="/api/v1")
 
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
-
-#uvicorn databases.business_todo.src.main:app --reload --host 0.0.0.0 --port 8000
+# uvicorn databases.business_todo.src.main:app --reload --host 0.0.0.0 --port 8000

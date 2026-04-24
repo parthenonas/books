@@ -1,56 +1,50 @@
-from typing import Optional
-
+from typing import Optional, List
 from databases.business_todo.src.repositories.user_repo import UserRepository
-from databases.business_todo.src.utils.validators import (
-    validate_name, validate_phone, validate_user_id,
-    ValidationError
-)
+from databases.business_todo.src.utils.validators import ValidationError
 
 
 class UserService:
+    """Сервис для управления пользователями"""
 
     @staticmethod
     def get_me(user_id: int) -> dict:
+        """Получить данные текущего пользователя"""
         user = UserRepository.get_by_id(user_id)
         if not user:
             raise ValidationError("User not found")
+
         return {k: v for k, v in user.items() if k != "password_hash"}
 
     @staticmethod
-    def get_users(role: Optional[str] = None, status: Optional[str] = None,
-                  current_user: dict = None) -> list:
+    def get_users(
+            role: Optional[str] = None,
+            status: Optional[str] = None,
+            current_user: Optional[dict] = None
+    ) -> dict:
+        """Получить список пользователей (только admin)"""
         if current_user["role"] != "admin":
-            if role == "executor":
-                return UserRepository.get_all(role="executor", status="active")
             raise ValidationError("Not enough permissions")
 
-        return UserRepository.get_all(role=role, status=status)
+        users = UserRepository.get_all(role=role, status=status)
+        users = [{k: v for k, v in u.items() if k != "password_hash"} for u in users]
+
+        return {
+            "users": users,
+            "total": len(users)
+        }
 
     @staticmethod
     def update_user(user_id: int, update_data: dict, current_user: dict) -> dict:
-        user_id = validate_user_id(user_id)
+        if current_user["role"] != "admin" and current_user["user_id"] != user_id:
+            raise ValidationError("Not enough permissions")
 
         user = UserRepository.get_by_id(user_id)
         if not user:
             raise ValidationError("User not found")
-        if current_user["role"] != "admin" and current_user["user_id"] != user_id:
-            raise ValidationError("Not enough permissions")
-        validated = {}
 
-        if "first_name" in update_data and update_data["first_name"] is not None:
-            validated["first_name"] = validate_name(update_data["first_name"], "First name")
+        if "email" in update_data and update_data["email"]:
+            existing = UserRepository.get_by_email(update_data["email"])
+            if existing and existing["user_id"] != user_id:
+                raise ValidationError("Email already registered", "email")
 
-        if "last_name" in update_data and update_data["last_name"] is not None:
-            validated["last_name"] = validate_name(update_data["last_name"], "Last name")
-
-        if "phone" in update_data:
-            validated["phone"] = validate_phone(update_data["phone"])
-
-        if "status" in update_data and current_user["role"] == "admin":
-            validated["status"] = update_data["status"]
-
-        if not validated:
-            return {k: v for k, v in user.items() if k != "password_hash"}
-
-        updated = UserRepository.update(user_id, **validated)
-        return {k: v for k, v in updated.items() if k != "password_hash"}
+        return UserRepository.update(user_id, **update_data)

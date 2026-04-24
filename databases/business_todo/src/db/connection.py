@@ -10,8 +10,10 @@ connection_pool = pool.SimpleConnectionPool(
     port=settings.DB_PORT
 )
 
+
 def get_db_connection():
     return connection_pool.getconn()
+
 
 def release_db_connection(conn):
     connection_pool.putconn(conn)

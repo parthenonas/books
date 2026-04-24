@@ -24,6 +24,7 @@ PostgreSQL + psycopg2 — база данных
 python-jose + passlib — JWT и хеширование паролей
 pytest + unittest.mock — тестирование
 python-dotenv — управление конфигом
+pydantic - валидация
 
 ![Swagger](docs\swagger.png)
 ![Schema](docs\schema.drawio)
