@@ -97,7 +97,7 @@ erDiagram
     }
 
     DUTIES {
-        int settler_id PK_FK
+        int settler_id PK, FK
         string work_type PK "Вид наряда"
         int days "Отработано дней"
     }
