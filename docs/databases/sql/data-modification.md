@@ -168,7 +168,7 @@ CREATE TABLE settlers (
 );
 
 INSERT INTO settlers (full_name, birth_date, sloboda_no, craft, salary) VALUES
-('Иванов Иван Иванович',      '1680-05-25', 1122, 'плотник',   122.20),
+('Иванов Иван Иванович',      '1680-05-25', 1122, 'плотник',   110.00),
 ('Козлов Федор Петрович',     '1682-03-10', 1122, 'землекоп',   98.50),
 ('Кузнецов Степан Лукич',     '1679-11-02', 1133, 'кузнец',    145.00),
 ('Соколов Михаил Андреевич',  '1685-07-07', 2211, 'каменщик',  130.00),
@@ -317,7 +317,7 @@ INSERT INTO rulers (name, title, reign_start, reign_end) VALUES
     salary NUMERIC(10, 2)
 );`,
 `INSERT INTO settlers (full_name, birth_date, sloboda_no, craft, salary) VALUES
-('Иванов Иван Иванович',      '1680-05-25', 1122, 'плотник',   122.20),
+('Иванов Иван Иванович',      '1680-05-25', 1122, 'плотник',   110.00),
 ('Козлов Федор Петрович',     '1682-03-10', 1122, 'землекоп',   98.50),
 ('Кузнецов Степан Лукич',     '1679-11-02', 1133, 'кузнец',    145.00),
 ('Соколов Михаил Андреевич',  '1685-07-07', 2211, 'каменщик',  130.00),
@@ -431,16 +431,20 @@ INSERT INTO rulers (name, title, reign_start, reign_end) VALUES
 
 ## Вписать душу (INSERT)
 
-Начинаем с самого простого: внести в книгу новую запись. Для учебных примеров Федор завел черновую книгу – чтобы не портить ревизскую.
+Начинаем с самого простого: внести в книгу новую запись.
+
+Прямо в ревизскую книгу `souls` подьячие не пишут – туда попадает только проверенное. Сперва по каждому уезду заводят **черновую сказку**: помещик присылает список своих людей, подьячий переносит его в черновик, черновик проверяют, и только потом сведения уходят в главную книгу.
+
+Заведем такую черновую сказку.
 
 ```sql
-CREATE TABLE cadet (
+CREATE TABLE skazka (
     fio VARCHAR (50),
-    date_b DATE,
-    gender BOOL,
-    n_group INT,
-    rang VARCHAR (25),
-    salary FLOAT
+    birth_year INT,
+    is_male BOOL,
+    uyezd VARCHAR (50),
+    estate VARCHAR (25),
+    tax NUMERIC (8, 2)
 );
 ```
 
@@ -449,15 +453,15 @@ CREATE TABLE cadet (
 Самый надежный способ: перечислить столбцы явно.
 
 ```sql
-INSERT INTO cadet (fio, date_b, gender, n_group, rang, salary)
-VALUES ('Олин О.О.', '1700-10-20', true, 1122, 'работник', 123.4);
+INSERT INTO skazka (fio, birth_year, is_male, uyezd, estate, tax)
+VALUES ('Олин Еремей Фомич', 1690, true, 'Новгородский', 'Крестьянин', 0.74);
 ```
 
 А теперь то же самое, но столбцы перечислены в другом порядке и часть значений пустая:
 
 ```sql
-INSERT INTO cadet (fio, n_group, rang, salary, date_b, gender)
-VALUES ('Колин К.К.', NULL, 'работник', NULL, '1700-01-21', true);
+INSERT INTO skazka (fio, uyezd, estate, tax, birth_year, is_male)
+VALUES ('Колин Сидор Петрович', 'Новгородский', 'Крестьянин', NULL, 1692, true);
 ```
 
 ::: info Порядок столбцов в списке
@@ -468,11 +472,11 @@ VALUES ('Колин К.К.', NULL, 'работник', NULL, '1700-01-21', true)
 
 ### Б) С сокращенным списком столбцов
 
-Перечисляем только те столбцы, которые знаем:
+Перечисляем только те столбцы, которые знаем. Помещик прислал имя, год рождения и сословие, а про подать умолчал:
 
 ```sql
-INSERT INTO cadet (fio, date_b, gender, rang)
-VALUES ('Мишин М.М.', '1700-02-22', true, 'работник');
+INSERT INTO skazka (fio, birth_year, is_male, estate)
+VALUES ('Мишин Авдей Карпович', 1688, true, 'Крестьянин');
 ```
 
 ::: info Что будет с остальными столбцами
@@ -484,8 +488,8 @@ VALUES ('Мишин М.М.', '1700-02-22', true, 'работник');
 Список можно опустить совсем:
 
 ```sql
-INSERT INTO cadet
-VALUES ('Анин А.А.', '1700-03-23', true, NULL, 'работник', NULL);
+INSERT INTO skazka
+VALUES ('Анин Аким Фомич', 1685, true, NULL, 'Крестьянин', NULL);
 ```
 
 ::: warning Опасная форма
@@ -497,7 +501,7 @@ VALUES ('Анин А.А.', '1700-03-23', true, NULL, 'работник', NULL);
 Есть еще одна форма, короче:
 
 ```sql
-INSERT INTO cadet VALUES ('Ванин В.В.', '1700-04-24', true);
+INSERT INTO skazka VALUES ('Ванин Влас Гаврилович', 1691, true);
 ```
 
 ::: info Расширение PostgreSQL
@@ -509,9 +513,9 @@ INSERT INTO cadet VALUES ('Ванин В.В.', '1700-04-24', true);
 ### Г) Несколько строк одной командой
 
 ```sql
-INSERT INTO cadet VALUES
-('Петин П.П.', '1700-05-25'),
-('Светин С.С.', '1700-06-26');
+INSERT INTO skazka VALUES
+('Петин Пахом Ильич', 1693),
+('Светин Савва Тихонович', 1694);
 ```
 
 ::: info Пакетная вставка
@@ -519,6 +523,12 @@ INSERT INTO cadet VALUES
 
 Это не просто удобнее, это существенно быстрее: одна команда – один проход, одна проверка плана, одна запись в журнал транзакций. Вставлять тысячу строк тысячей отдельных `INSERT` – классическая ошибка, из-за которой загрузка данных идет часами вместо секунд.
 :::
+
+Посмотрим, что накопилось в черновике:
+
+```sql
+SELECT * FROM skazka;
+```
 
 <Conversation :phrases="[
     {
@@ -529,22 +539,24 @@ INSERT INTO cadet VALUES
     }
 ]"/>
 
-## Перенос из старых книг (INSERT ... SELECT)
+## Перенос из черновиков в книгу (INSERT ... SELECT)
 
-Главная работа ревизии – не записать новое, а **перенести старое**. Подворные книги уже существуют, в них десятки лет записей. Их надо переложить в новые, подушные.
+Главная работа ревизии – не записать новое, а **перенести проверенное**. Черновые сказки лежат, их выверили, теперь сведения должны уйти в ревизскую книгу.
 
 ### А) Копия книги целиком
 
+Прежде чем трогать главную книгу, Федор снимает с черновика копию – на случай, если при сведении что-то испортится.
+
 ```sql
-CREATE TABLE cadet_1 (LIKE cadet);
-INSERT INTO cadet_1 SELECT * FROM cadet;
+CREATE TABLE skazka_svod (LIKE skazka);
+INSERT INTO skazka_svod SELECT * FROM skazka;
 ```
 
 ::: info То же самое короче
 Такого же результата можно достичь одной командой:
 
 ```sql
-CREATE TABLE cadet_1 AS SELECT * FROM cadet;
+CREATE TABLE skazka_svod AS SELECT * FROM skazka;
 ```
 
 Но помните разницу, которую мы разбирали на прошлом занятии: `CREATE TABLE ... AS SELECT` не перенесет ни одного ограничения, даже `NOT NULL`. Если структура важна, лучше `(LIKE ... INCLUDING ALL)` плюс отдельный `INSERT ... SELECT`.
@@ -552,11 +564,11 @@ CREATE TABLE cadet_1 AS SELECT * FROM cadet;
 
 ### Б) Перенос с отбором и показом результата
 
-Переносим только тех, у кого известна должность, и сразу смотрим, что перенеслось:
+В сводную книгу идут только те записи, где помещик указал сословие: без сословия подать начислить нельзя.
 
 ```sql
-INSERT INTO cadet_1
-SELECT * FROM cadet WHERE rang IS NOT NULL
+INSERT INTO skazka_svod
+SELECT * FROM skazka WHERE estate IS NOT NULL
 RETURNING *;
 ```
 
@@ -564,19 +576,36 @@ RETURNING *;
 Синтаксис предложения `RETURNING` аналогичен предложению `SELECT` команды выборки данных. То есть можно вернуть не все столбцы, а выбранные, с выражениями и псевдонимами:
 
 ```sql
-INSERT INTO cadet_1
-SELECT * FROM cadet WHERE rang IS NOT NULL
-RETURNING fio, salary * 1.1 AS salary_with_raise;
+INSERT INTO skazka_svod
+SELECT * FROM skazka WHERE estate IS NOT NULL
+RETURNING fio, uyezd, COALESCE(tax, 0.74) AS tax_to_pay;
 ```
 
 `RETURNING` работает у всех трех команд модификации: `INSERT`, `UPDATE` и `DELETE`. И это не роскошь, а рабочий инструмент: он разом отвечает на вопрос «а сколько строк я, собственно, задел».
 :::
 
-Отдельно стоит знать про `INSERT ... SELECT` то, что это способ переложить данные **внутри базы**, не вытаскивая их в приложение. Миллион строк, переложенный одной командой на сервере, и миллион строк, прочитанный приложением и записанный обратно по одной, отличаются по времени на три порядка.
+### В) Перенос в книгу с другой структурой
+
+А теперь то, ради чего все затевалось: перенос из черновой сказки в настоящую ревизскую книгу. Структура у них разная, поэтому `SELECT *` не годится – столбцы перечисляем явно и с обеих сторон.
 
 ```sql
-DROP TABLE cadet, cadet_1;
+INSERT INTO souls (fio, birth_year, estate, uyezd, tax)
+SELECT fio, birth_year, estate, uyezd, COALESCE(tax, 0.74)
+FROM skazka
+WHERE estate IS NOT NULL
+RETURNING id, fio, tax;
 ```
+
+<Conversation :phrases="[
+    {
+        name: 'Федор',
+        position: 'right',
+        text: 'Четыре души ушли в ревизскую книгу и сразу получили номера. А трое остались в черновике – у них сословие не указано, помещик недописал. Пусть досылает.',
+        photo: ivan
+    }
+]"/>
+
+Отдельно стоит знать про `INSERT ... SELECT` то, что это способ переложить данные **внутри базы**, не вытаскивая их в приложение. Миллион строк, переложенный одной командой на сервере, и миллион строк, прочитанный приложением и записанный обратно по одной, отличаются по времени на три порядка.
 
 ## Шаблон сказки (DEFAULT при вставке)
 
@@ -589,39 +618,43 @@ DROP TABLE cadet, cadet_1;
     }
 ]"/>
 
-### А) Таблица с готовыми значениями
+### А) Черновик с готовыми значениями
+
+Заводим сказку заново – теперь с подставновками по умолчанию.
 
 ```sql
-CREATE TABLE cadet (
+DROP TABLE IF EXISTS skazka, skazka_svod;
+
+CREATE TABLE skazka (
     id SERIAL,
-    fio VARCHAR (25),
-    date_b DATE DEFAULT '1700-10-20',
-    gender BOOL DEFAULT '1',
-    n_group INT DEFAULT 1122,
-    rang VARCHAR (25) DEFAULT 'работник',
-    salary FLOAT DEFAULT 123.4
+    fio VARCHAR (50),
+    birth_year INT DEFAULT 1690,
+    is_male BOOL DEFAULT '1',
+    uyezd VARCHAR (50) DEFAULT 'Новгородский',
+    estate VARCHAR (25) DEFAULT 'Крестьянин',
+    tax NUMERIC (8, 2) DEFAULT 0.74
 );
 ```
 
 ### Б) Вставка по шаблону
 
-Указываем только фамилию – все остальное подставится само:
+Указываем только имя – все остальное подставится само:
 
 ```sql
-INSERT INTO cadet (fio) VALUES ('Мишин М.М.');
+INSERT INTO skazka (fio) VALUES ('Мишин Авдей Карпович');
 ```
 
-Указываем фамилию и то, что отличается от шаблона:
+Указываем имя и то, что отличается от шаблона:
 
 ```sql
-INSERT INTO cadet (fio, date_b, salary) VALUES
-('Гришин Г.Г.', '1700-01-21', 100.5);
+INSERT INTO skazka (fio, birth_year, tax) VALUES
+('Гришин Гурий Лукич', 1679, 1.20);
 ```
 
 Проверим:
 
 ```sql
-SELECT * FROM cadet;
+SELECT * FROM skazka;
 ```
 
 ::: info Про SERIAL
@@ -633,11 +666,12 @@ SELECT * FROM cadet;
 Если нужно явно сказать «возьми значение по умолчанию», для этого есть ключевое слово `DEFAULT`:
 
 ```sql
-INSERT INTO cadet VALUES (DEFAULT, 'Тишин Т.Т.', DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
+INSERT INTO skazka
+VALUES (DEFAULT, 'Тишин Тихон Савельевич', DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 ```
 
 ```sql
-DROP TABLE cadet;
+DROP TABLE skazka;
 ```
 
 ## Ревизор не пропускает (ограничения при вставке)
@@ -659,20 +693,22 @@ DROP TABLE cadet;
     }
 ]"/>
 
-### А) Книга с полным набором правил
+### А) Черновик с полным набором правил
 
 ```sql
-CREATE TABLE cadet (
+CREATE TABLE skazka (
     id SERIAL PRIMARY KEY,
-    fio VARCHAR (25),
-    date_b DATE NOT NULL,
-    gender BOOL,
-    n_group INT,
-    rang VARCHAR (25),
-    salary FLOAT CHECK (salary > 0),
-    UNIQUE (fio, n_group)
+    fio VARCHAR (50),
+    birth_year INT NOT NULL,
+    is_male BOOL,
+    uyezd VARCHAR (50),
+    estate VARCHAR (25),
+    tax NUMERIC (8, 2) CHECK (tax > 0),
+    UNIQUE (fio, uyezd)
 );
 ```
+
+Правила читаются так: год рождения обязателен, потому что без него не определить, податной человек или еще мал; подать не может быть нулевой или отрицательной; и один человек в одном уезде записывается один раз.
 
 ### Б) Пять попыток вставки
 
@@ -681,8 +717,8 @@ CREATE TABLE cadet (
 **Попытка 1:**
 
 ```sql
-INSERT INTO cadet VALUES
-(DEFAULT, 'Анин А.А.', '1700-10-20', true, 1122, 'работник', 123.4);
+INSERT INTO skazka VALUES
+(DEFAULT, 'Анин Аким Фомич', 1685, true, 'Новгородский', 'Крестьянин', 0.74);
 ```
 
 Первая команда выполнится **успешно**, и строка будет вставлена в таблицу, потому что ее значения удовлетворяют всем ограничениям.
@@ -690,36 +726,36 @@ INSERT INTO cadet VALUES
 **Попытка 2:**
 
 ```sql
-INSERT INTO cadet VALUES
-(DEFAULT, 'Ванин В.В.', NULL, true, 1122, 'работник', 123.4);
+INSERT INTO skazka VALUES
+(DEFAULT, 'Ванин Влас Гаврилович', NULL, true, 'Новгородский', 'Крестьянин', 0.74);
 ```
 
-Выполнение приведет к **ошибке**, потому что столбец `date_b` не может принимать пустые значения.
+Выполнение приведет к **ошибке**, потому что столбец `birth_year` не может принимать пустые значения.
 
 ```
-ERROR:  null value in column "date_b" of relation "cadet" violates not-null constraint
+ERROR:  null value in column "birth_year" of relation "skazka" violates not-null constraint
 ```
 
 **Попытка 3:**
 
 ```sql
-INSERT INTO cadet VALUES
-(DEFAULT, 'Олин О.О.', '1700-01-21', true, 1122, 'работник', 0);
+INSERT INTO skazka VALUES
+(DEFAULT, 'Олин Еремей Фомич', 1690, true, 'Новгородский', 'Крестьянин', 0);
 ```
 
-Выполнение приведет к **ошибке**, потому что значения столбца `salary` должны быть больше 0.
+Выполнение приведет к **ошибке**, потому что значения столбца `tax` должны быть больше 0.
 
 ```
-ERROR:  new row for relation "cadet" violates check constraint "cadet_salary_check"
+ERROR:  new row for relation "skazka" violates check constraint "skazka_tax_check"
 ```
 
-Кстати, обратите внимание на имя ограничения в тексте ошибки: `cadet_salary_check`. Это то самое имя, которое PostgreSQL придумал сам, потому что мы его не назвали. Теперь понятно, почему имена стоит давать осмысленные: в ошибке на рабочем сервере вы увидите именно его.
+Кстати, обратите внимание на имя ограничения в тексте ошибки: `skazka_tax_check`. Это то самое имя, которое PostgreSQL придумал сам, потому что мы его не назвали. Теперь понятно, почему имена стоит давать осмысленные: в ошибке на рабочем сервере вы увидите именно его.
 
 **Попытка 4:**
 
 ```sql
-INSERT INTO cadet VALUES
-(DEFAULT, 'Колин К.К.', '1700-02-22', true, 1122, 'работник', NULL);
+INSERT INTO skazka VALUES
+(DEFAULT, 'Колин Сидор Петрович', 1692, true, 'Новгородский', 'Крестьянин', NULL);
 ```
 
 А вот это – **успешно**, и строка будет вставлена.
@@ -729,20 +765,22 @@ INSERT INTO cadet VALUES
 
 `NULL > 0` – это не `FALSE`, это `NULL`: сравнение неизвестного с нулем дает неизвестный результат. А неизвестность ограничение не нарушает.
 
-Вывод: `CHECK (salary > 0)` защищает от нуля и от минуса, но **не** защищает от пустоты. Если пустота недопустима, нужно отдельное `NOT NULL`. Одно ограничение другое не заменяет.
+Вывод: `CHECK (tax > 0)` защищает от нуля и от минуса, но **не** защищает от пустоты. Если пустота недопустима, нужно отдельное `NOT NULL`. Одно ограничение другое не заменяет.
+
+Для нас это значит вот что: душа без подати в черновик пролезет. Поймает ее не база, а ревизор, когда начнет сводить итоги.
 :::
 
 **Попытка 5:**
 
 ```sql
-INSERT INTO cadet VALUES
-(DEFAULT, 'Анин А.А.', '1700-03-23', true, 1122, 'командир', 156.7);
+INSERT INTO skazka VALUES
+(DEFAULT, 'Анин Аким Фомич', 1687, true, 'Новгородский', 'Мастеровой', 1.20);
 ```
 
-Выполнение приведет к **ошибке**, потому что значения столбцов `fio` и `n_group` должны быть уникальны в совокупности. Анин А.А. из группы 1122 в книге уже есть.
+Выполнение приведет к **ошибке**, потому что значения столбцов `fio` и `uyezd` должны быть уникальны в совокупности. Аким Фомич Анин из Новгородского уезда в сказке уже есть.
 
 ```
-ERROR:  duplicate key value violates unique constraint "cadet_fio_n_group_key"
+ERROR:  duplicate key value violates unique constraint "skazka_fio_uyezd_key"
 ```
 
 ### Когда дубли – это норма жизни
@@ -767,8 +805,8 @@ ERROR:  duplicate key value violates unique constraint "cadet_fio_n_group_key"
 **Молча пропустить дубль:**
 
 ```sql
-INSERT INTO cadet VALUES
-(DEFAULT, 'Анин А.А.', '1700-03-23', true, 1122, 'командир', 156.7)
+INSERT INTO skazka VALUES
+(DEFAULT, 'Анин Аким Фомич', 1687, true, 'Новгородский', 'Мастеровой', 1.20)
 ON CONFLICT DO NOTHING;
 ```
 
@@ -777,80 +815,83 @@ ON CONFLICT DO NOTHING;
 **Обновить существующую строку:**
 
 ```sql
-INSERT INTO cadet (fio, date_b, gender, n_group, rang, salary) VALUES
-('Анин А.А.', '1700-03-23', true, 1122, 'командир', 156.7)
-ON CONFLICT (fio, n_group)
-DO UPDATE SET rang = EXCLUDED.rang, salary = EXCLUDED.salary
+INSERT INTO skazka (fio, birth_year, is_male, uyezd, estate, tax) VALUES
+('Анин Аким Фомич', 1687, true, 'Новгородский', 'Мастеровой', 1.20)
+ON CONFLICT (fio, uyezd)
+DO UPDATE SET estate = EXCLUDED.estate, tax = EXCLUDED.tax
 RETURNING *;
 ```
 
-Здесь `EXCLUDED` – это псевдотаблица с той строкой, которую мы пытались вставить. То есть читается команда так: «попробуй вставить; если помешало ограничение по `(fio, n_group)` – возьми из моей строки должность и оклад и запиши их в ту, что уже лежит».
+Здесь `EXCLUDED` – это псевдотаблица с той строкой, которую мы пытались вставить. То есть читается команда так: «попробуй вставить; если помешало ограничение по `(fio, uyezd)` – возьми из моей строки сословие и подать и запиши их в ту, что уже лежит».
 
 Это ровно та логика, которая нужна для повторных сказок: последняя присланная версия побеждает.
 
 ```sql
-DROP TABLE cadet;
+DROP TABLE skazka;
 ```
 
-## Приписать душу ко двору (вставка в дочернюю таблицу)
+## Записать наряды (вставка в дочернюю таблицу)
 
-### А) Дочерняя книга
+Черновики закончились, дальше работаем с настоящими книгами.
 
-Заводим родительскую и дочернюю таблицы:
+### А) Родительская и дочерняя книги
+
+Книга поселенцев `settlers` и книга нарядов `duties` достались нам с прошлого занятия и уже созданы. Выполнять эти команды не нужно, они здесь только для напоминания.
+
+::: details Чертеж обеих книг
 
 ```sql
-CREATE TABLE cadet (
+CREATE TABLE settlers (
     id SERIAL PRIMARY KEY,
-    fio VARCHAR (25),
-    date_b DATE,
-    n_group INT,
-    rang VARCHAR (25),
-    salary FLOAT
+    full_name VARCHAR(50) NOT NULL,
+    birth_date DATE NOT NULL,
+    sloboda_no INTEGER,
+    craft VARCHAR(25),
+    salary NUMERIC(10, 2)
 );
 
-INSERT INTO cadet (fio, date_b, n_group, rang, salary) VALUES
-('Анин А.А.',  '1700-10-20', 1122, 'работник', 123.4),
-('Ванин В.В.', '1700-11-21', 1122, 'работник', 123.4),
-('Олин О.О.',  '1700-12-22', 1133, 'работник', 123.4),
-('Колин К.К.', '1701-01-23', 1133, 'работник', 123.4);
-
-CREATE TABLE mark (
-    id INT REFERENCES cadet,
-    sub VARCHAR (25),
-    mark INT,
-    PRIMARY KEY (id, sub)
+CREATE TABLE duties (
+    settler_id INT REFERENCES settlers,
+    work_type VARCHAR(25),
+    days INT,
+    PRIMARY KEY (settler_id, work_type)
 );
 ```
 
-### Б) Два способа записать оценки
+:::
 
-Нужно записать Анину А.А. химию 5, физику 5, историю 4, а Колину К.К. химию 4, физику 3, историю 4.
+Главное в дочерней книге – две вещи: внешний ключ `settler_id` не пустит наряд на несуществующего человека, а составной первичный ключ `(settler_id, work_type)` не даст записать один и тот же наряд одному человеку дважды.
 
-**Способ первый: с непосредственными значениями.** Сначала выясняем идентификаторы:
+### Б) Два способа записать наряды
+
+Пришла ведомость с работ: Чехов Антон Егорович отработал свайную работу 15 дней, возку камня 18 и мощение 12. Титов Григорий Савельевич – свайную работу 22 дня и возку камня 14.
+
+Ниже два способа сделать одно и то же. Выполняйте **один из них**: после первого записи уже будут в книге, и второй упрется в составной первичный ключ.
+
+**Способ первый: с непосредственными значениями.** Сначала выясняем номера:
 
 ```sql
-SELECT id FROM cadet WHERE fio = 'Анин А.А.';
-SELECT id FROM cadet WHERE fio = 'Колин К.К.';
+SELECT id FROM settlers WHERE full_name = 'Чехов Антон Егорович';
+SELECT id FROM settlers WHERE full_name = 'Титов Григорий Савельевич';
 ```
 
 Потом вставляем:
 
 ```sql
-INSERT INTO mark VALUES
-(1, 'Химия', 5), (1, 'Физика', 5), (1, 'История', 4),
-(4, 'Химия', 4), (4, 'Физика', 3), (4, 'История', 4);
+INSERT INTO duties VALUES
+(7, 'Свайная работа', 15), (7, 'Возка камня', 18), (7, 'Мощение', 12),
+(6, 'Свайная работа', 22), (6, 'Возка камня', 14);
 ```
 
-**Способ второй: с подзапросом.** База сама найдет идентификаторы:
+**Способ второй: с подзапросом.** База сама найдет номера:
 
 ```sql
-INSERT INTO mark VALUES
-((SELECT id FROM cadet WHERE fio = 'Анин А.А.'),  'Химия',   5),
-((SELECT id FROM cadet WHERE fio = 'Анин А.А.'),  'Физика',  5),
-((SELECT id FROM cadet WHERE fio = 'Анин А.А.'),  'История', 4),
-((SELECT id FROM cadet WHERE fio = 'Колин К.К.'), 'Химия',   4),
-((SELECT id FROM cadet WHERE fio = 'Колин К.К.'), 'Физика',  3),
-((SELECT id FROM cadet WHERE fio = 'Колин К.К.'), 'История', 4);
+INSERT INTO duties VALUES
+((SELECT id FROM settlers WHERE full_name = 'Чехов Антон Егорович'),  'Свайная работа', 15),
+((SELECT id FROM settlers WHERE full_name = 'Чехов Антон Егорович'),  'Возка камня',    18),
+((SELECT id FROM settlers WHERE full_name = 'Чехов Антон Егорович'),  'Мощение',        12),
+((SELECT id FROM settlers WHERE full_name = 'Титов Григорий Савельевич'), 'Свайная работа', 22),
+((SELECT id FROM settlers WHERE full_name = 'Титов Григорий Савельевич'), 'Возка камня',    14);
 ```
 
 <Conversation :phrases="[
@@ -872,15 +913,91 @@ INSERT INTO mark VALUES
 
 :::
 
-Книги оставляем, они нам еще понадобятся.
+## Оклады и жалованье (UPDATE)
 
-## Табель о рангах (UPDATE)
+<Conversation :phrases="[
+    {
+        name: 'Петр',
+        position: 'left',
+        text: 'Федор, по работным людям оклады пересмотреть. Кто хорошо работает – прибавить, кто в десятники вышел – записать по новой должности.',
+        photo: petr
+    },
+    {
+        name: 'Федор',
+        position: 'right',
+        text: 'Переписывать книгу не надо, мин херц. Надо изменить. Это разные дела.',
+        photo: ivan
+    }
+]"/>
+
+Команда `UPDATE` меняет значения в существующих строках. Работать будем с книгой поселенцев: там есть и имя, и номер слободы, то есть условие получается точным.
+
+### А) Изменить одно значение
+
+```sql
+UPDATE settlers SET salary = 122.20
+WHERE full_name = 'Иванов Иван Иванович' AND sloboda_no = 1122;
+```
+
+### Б) Изменить несколько значений сразу
+
+Перечисляем через запятую:
+
+```sql
+UPDATE settlers SET craft = 'десятник', salary = 144.40
+WHERE full_name = 'Иванов Иван Иванович' AND sloboda_no = 1122;
+```
+
+### В) Изменить значение относительно текущего
+
+В правой части можно использовать само старое значение:
+
+```sql
+UPDATE settlers SET salary = salary + 10
+WHERE full_name = 'Иванов Иван Иванович' AND sloboda_no = 1122;
+```
+
+Это важный прием: прибавку не надо сначала вычитывать, считать в приложении и записывать обратно. База сделает это сама, атомарно.
+
+### Г) Записать пустое значение
+
+Человек списан с работ, оклад ему больше не положен, но из книги его не вычеркивают:
+
+```sql
+UPDATE settlers SET salary = NULL
+WHERE full_name = 'Иванов Иван Иванович' AND sloboda_no = 1122;
+```
+
+### RETURNING и главное предупреждение
+
+Для вывода измененных строк можно использовать предложение `RETURNING`:
+
+```sql
+UPDATE settlers SET salary = 122.20
+WHERE full_name = 'Иванов Иван Иванович' AND sloboda_no = 1122
+RETURNING full_name, craft, salary;
+```
+
+::: danger UPDATE без WHERE
+При использовании команды `UPDATE` **без** предложения `WHERE` изменению подлежат **все строки таблицы**.
+
+Это не ошибка синтаксиса. База не спросит «вы уверены?». Она просто сделает.
+:::
+
+### Табель о рангах
 
 **24 января 1722 года.** Петр утверждает **Табель о рангах** – документ, который перевернул русское общество.
 
 Все должности делятся на 14 классов, от самого высокого (первого) до самого низкого (четырнадцатого). И главное: продвигаться по ним теперь можно **за службу, а не за происхождение**. Дослужился до восьмого класса – получил потомственное дворянство, даже если родился сыном солдата. Для России это была революция, и Табель прожила почти двести лет, до 1917 года.
 
-Для канцелярии это означало одно: надо разом перевести в новую систему всех служащих страны.
+Для канцелярии это означало одно: надо разом перевести в новую систему всех служащих страны. В нашей базе за это отвечают две книги: `ranks` – сама Табель, все четырнадцать классов, и `service` – кто в каком классе и с каким жалованьем.
+
+```sql
+SELECT r.class_no, r.civil_name, r.military_name, s.salary
+FROM service s
+JOIN ranks r ON r.id = s.rank_id
+ORDER BY r.class_no;
+```
 
 <Conversation :phrases="[
     {
@@ -892,62 +1009,12 @@ INSERT INTO mark VALUES
     {
         name: 'Федор',
         position: 'right',
-        text: 'Всех переписать не надо, мин херц. Надо изменить. Это разные дела.',
+        text: 'Сделаю, мин херц. Только дай я это сам сделаю, без помощников.',
         photo: ivan
     }
 ]"/>
 
-Команда `UPDATE` меняет значения в существующих строках.
-
-### А) Изменить одно значение
-
-```sql
-UPDATE cadet SET salary = 122.2
-WHERE fio = 'Анин А.А.' AND n_group = 1122;
-```
-
-### Б) Изменить несколько значений сразу
-
-Перечисляем через запятую:
-
-```sql
-UPDATE cadet SET rang = 'командир отделения', salary = 144.4
-WHERE fio = 'Анин А.А.' AND n_group = 1122;
-```
-
-### В) Изменить значение относительно текущего
-
-В правой части можно использовать само старое значение:
-
-```sql
-UPDATE cadet SET salary = salary + 10
-WHERE fio = 'Анин А.А.' AND n_group = 1122;
-```
-
-Это важный приём: прибавку не надо сначала вычитывать, считать в приложении и записывать обратно. База сделает это сама, атомарно.
-
-### Г) Записать пустое значение
-
-```sql
-UPDATE cadet SET salary = NULL
-WHERE fio = 'Анин А.А.' AND n_group = 1122;
-```
-
-### RETURNING и главное предупреждение
-
-Для вывода измененных строк можно использовать предложение `RETURNING`:
-
-```sql
-UPDATE cadet SET salary = 122.2
-WHERE fio = 'Анин А.А.' AND n_group = 1122
-RETURNING *;
-```
-
-::: danger UPDATE без WHERE
-При использовании команды `UPDATE` **без** предложения `WHERE` изменению подлежат **все строки таблицы**.
-
-Это не ошибка синтаксиса. База не спросит «вы уверены?». Она просто сделает.
-:::
+Помощника он все-таки получил.
 
 ### Мемория о лекаре: как разжаловать империю
 
@@ -969,13 +1036,13 @@ RETURNING *;
     {
         name: 'Лекарь',
         position: 'left',
-        text: 'Ну как ты учил: UPDATE service SET rank_id = 14. Четырнадцатый же есть в книге классов, я проверял! А потом хотел дописать, кому именно, но тут чихнул и нажал.',
+        text: 'Ну как ты учил: UPDATE service SET rank_id = 14. Четырнадцатый же есть в Табели, я проверял! А потом хотел дописать, кому именно, но тут чихнул и нажал.',
         photo: doctor
     },
     {
         name: 'Федор',
         position: 'right',
-        text: '(очень тихо) Ты только что разжаловал в последний класс всю империю. Включая двух генерал-фельдмаршалов и канцлера.',
+        text: '(очень тихо) Ты только что разжаловал в последний класс всю империю. Включая канцлера.',
         photo: ivan
     },
     {
@@ -993,7 +1060,7 @@ RETURNING *;
 UPDATE service SET rank_id = 14;
 ```
 
-Ни ошибки, ни предупреждения. Все пять строк изменены, прежние значения утрачены безвозвратно.
+Ни ошибки, ни предупреждения. Все строки изменены, прежние значения утрачены безвозвратно.
 
 ### Как от этого защищаться
 
@@ -1182,19 +1249,21 @@ RETURNING *;
 
 Это не выдумка. Подушная подать взималась по последней ревизии, а ревизии проводились раз в несколько десятилетий. Умерший человек продолжал числиться живым и платящим до следующей переписи. Эти записи так и называли – **мертвые души**. Вторая ревизия 1743 года обнаружила их в огромном количестве, а спустя сто лет на этом материале Гоголь напишет поэму.
 
-Для нас это идеальная иллюстрация к команде `DELETE`.
+Для нас это идеальная иллюстрация к команде `DELETE`. Но начнем с книги попроще – с нарядов: там ошибка не стоит человеческой судьбы.
 
 ### А) Удалить одну запись
 
+Иванову записали мощение, которого он не отрабатывал:
+
 ```sql
-DELETE FROM mark WHERE id = 1 AND sub = 'История';
+DELETE FROM duties WHERE settler_id = 1 AND work_type = 'Мощение';
 ```
 
 ::: info RETURNING при удалении
 Для вывода строк, подлежащих удалению из таблицы, тоже можно использовать предложение `RETURNING`:
 
 ```sql
-DELETE FROM mark WHERE id = 1 AND sub = 'История' RETURNING *;
+DELETE FROM duties WHERE settler_id = 1 AND work_type = 'Мощение' RETURNING *;
 ```
 
 При удалении это особенно полезно: `RETURNING` покажет, что именно вы сейчас потеряли.
@@ -1202,21 +1271,25 @@ DELETE FROM mark WHERE id = 1 AND sub = 'История' RETURNING *;
 
 ### Б) Удалить по составному условию
 
+Две ошибочные записи разом – у разных людей и по разным нарядам:
+
 ```sql
-DELETE FROM mark
-WHERE id = 1 AND sub = 'Химия' OR id = 4 AND sub = 'Физика';
+DELETE FROM duties
+WHERE settler_id = 2 AND work_type = 'Возка камня'
+   OR settler_id = 4 AND work_type = 'Мощение';
 ```
 
 ::: warning Про приоритет операторов
 `AND` выполняется раньше `OR`, поэтому условие читается как:
 
-`(id = 1 AND sub = 'Химия') OR (id = 4 AND sub = 'Физика')`
+`(settler_id = 2 AND work_type = 'Возка камня') OR (settler_id = 4 AND work_type = 'Мощение')`
 
 Это то, что нам нужно. Но полагаться на приоритет в сложных условиях опасно: один пропущенный `AND` – и `DELETE` заберет не то. Ставьте скобки явно:
 
 ```sql
-DELETE FROM mark
-WHERE (id = 1 AND sub = 'Химия') OR (id = 4 AND sub = 'Физика');
+DELETE FROM duties
+WHERE (settler_id = 2 AND work_type = 'Возка камня')
+   OR (settler_id = 4 AND work_type = 'Мощение');
 ```
 :::
 
@@ -1225,14 +1298,15 @@ WHERE (id = 1 AND sub = 'Химия') OR (id = 4 AND sub = 'Физика');
 Все сказанное про `UPDATE` без `WHERE` относится и к `DELETE`:
 
 ```sql
--- Удалит ВСЕ строки таблицы
-DELETE FROM mark;
+-- НЕ ВЫПОЛНЯЙТЕ: удалит ВСЕ наряды из книги
+DELETE FROM duties;
 ```
 
 Есть и вторая команда, делающая, на первый взгляд, то же самое:
 
 ```sql
-TRUNCATE TABLE mark;
+-- НЕ ВЫПОЛНЯЙТЕ: то же самое, только мгновенно
+TRUNCATE TABLE duties;
 ```
 
 | | `DELETE FROM` | `TRUNCATE TABLE` |
@@ -1308,40 +1382,43 @@ RETURNING fio, is_alive;
     {
         name: 'Петр',
         position: 'left',
-        text: 'Иванову из слободы 1122 исправить запись о кузнечном деле. Он там отработал больше, чем записано.',
+        text: 'Иванову из слободы 1122 исправить запись о свайной работе. Он там отработал больше, чем записано.',
         photo: petr
     },
     {
         name: 'Федор',
         position: 'right',
-        text: 'Так в книге нарядов нет ни фамилий, ни слобод, государь. Там только номера. А фамилия и слобода – в книге поселенцев.',
+        text: 'Так в книге нарядов нет ни имен, ни слобод, государь. Там только номера. А имя и слобода – в книге поселенцев.',
         photo: ivan
     }
 ]"/>
 
 ### А) Изменение по данным из другой таблицы
 
-Нужно изменить в таблице `mark` оценку по химии у Анина А.А. из группы 1122. Новое значение – 5.
+Нужно изменить в таблице `duties` число дней по свайной работе у Иванова из слободы 1122. Новое значение – 50.
 
 **Через предложение `FROM`:**
 
 ```sql
-UPDATE mark m SET mark = 5
-FROM cadet c
-WHERE c.id = m.id
-  AND c.fio = 'Анин А.А.'
-  AND c.n_group = 1122
-  AND m.sub = 'Химия';
+UPDATE duties d SET days = 50
+FROM settlers s
+WHERE s.id = d.settler_id
+  AND s.full_name = 'Иванов Иван Иванович'
+  AND s.sloboda_no = 1122
+  AND d.work_type = 'Свайная работа';
 ```
 
-Читается так: «меняй в `mark`, а чтобы понять, где именно, возьми еще и `cadet` и свяжи их по `id`».
+Читается так: «меняй в `duties`, а чтобы понять, где именно, возьми еще и `settlers` и свяжи их по номеру».
 
 **Через подзапрос:**
 
 ```sql
-UPDATE mark SET mark = 5
-WHERE sub = 'Химия'
-  AND id = (SELECT id FROM cadet WHERE fio = 'Анин А.А.' AND n_group = 1122);
+UPDATE duties SET days = 50
+WHERE work_type = 'Свайная работа'
+  AND settler_id = (
+      SELECT id FROM settlers
+      WHERE full_name = 'Иванов Иван Иванович' AND sloboda_no = 1122
+  );
 ```
 
 ### Б) Удаление по данным из другой таблицы
@@ -1349,20 +1426,23 @@ WHERE sub = 'Химия'
 **Через предложение `USING`:**
 
 ```sql
-DELETE FROM mark m
-USING cadet c
-WHERE c.id = m.id
-  AND c.fio = 'Анин А.А.'
-  AND c.n_group = 1122
-  AND m.sub = 'Химия';
+DELETE FROM duties d
+USING settlers s
+WHERE s.id = d.settler_id
+  AND s.full_name = 'Иванов Иван Иванович'
+  AND s.sloboda_no = 1122
+  AND d.work_type = 'Свайная работа';
 ```
 
 **Через подзапрос:**
 
 ```sql
-DELETE FROM mark
-WHERE sub = 'Химия'
-  AND id = (SELECT id FROM cadet WHERE fio = 'Анин А.А.' AND n_group = 1122);
+DELETE FROM duties
+WHERE work_type = 'Свайная работа'
+  AND settler_id = (
+      SELECT id FROM settlers
+      WHERE full_name = 'Иванов Иван Иванович' AND sloboda_no = 1122
+  );
 ```
 
 ::: info FROM и USING – это одно и то же
@@ -1379,88 +1459,84 @@ WHERE sub = 'Химия'
 Поэтому для одиночных точных правок надежнее подзапрос, а `FROM` и `USING` берут для массовых операций, когда соответствие заведомо однозначное.
 :::
 
-## Три книги сразу
+## Три книги сразу: душа, чин и служба
 
-Теперь задача посложнее: три таблицы, две связи. Заводим новый набор книг.
+Теперь задача посложнее: три таблицы, две связи. Все три у нас уже есть.
 
-```sql
-DROP TABLE IF EXISTS mark, cadet;
+- `souls` – ревизская книга, кто вообще есть на свете;
+- `ranks` – Табель о рангах, все четырнадцать классов;
+- `service` – связующая книга: кто, в каком классе, с какого числа и с каким жалованьем.
 
-CREATE TABLE cadet (
-    id SERIAL PRIMARY KEY,
-    fio VARCHAR (25),
-    date_b DATE,
-    n_group INT,
-    rang VARCHAR (25),
-    salary FLOAT
-);
+```mermaid
+erDiagram
+    SOULS ||--o{ SERVICE : "служит"
+    RANKS ||--o{ SERVICE : "чин по Табели"
 
-CREATE TABLE sub (
-    id SERIAL PRIMARY KEY,
-    name_sub VARCHAR (25)
-);
+    SOULS {
+        int id PK
+        string fio "ФИО"
+        string estate "Сословие"
+    }
 
-CREATE TABLE mark (
-    id SERIAL PRIMARY KEY,
-    id_c INT REFERENCES cadet,
-    id_s INT REFERENCES sub,
-    mark INT
-);
+    RANKS {
+        int id PK
+        int class_no "Класс, 1-14"
+        string civil_name "Чин статский"
+    }
 
-INSERT INTO cadet (fio, date_b, n_group, rang, salary) VALUES
-('Анин А.А.',  '1700-10-20', 1122, 'работник', 123.4),
-('Ванин В.В.', '1700-11-21', 1122, 'работник', 123.4);
-
-INSERT INTO sub (name_sub) VALUES ('Химия'), ('Физика'), ('История');
-
-INSERT INTO mark (id_c, id_s, mark) VALUES
-(1, 1, 5), (1, 2, 4), (2, 1, 3);
+    SERVICE {
+        int id PK
+        int soul_id FK
+        int rank_id FK
+        date appointed_date "Дата пожалования"
+        numeric salary "Жалованье"
+    }
 ```
 
 ### А) Вставка через подзапросы
 
-Записать курсанту Чехову из группы 1122 оценки: 5 по географии и 4 по биологии. Ни Чехова, ни этих дисциплин в книгах еще нет.
+В службу принят новый человек, и сразу известно, что через год он был повышен. Записать надо и душу, и обе записи о службе – а номеров мы не знаем ни одного.
 
 ```sql
-INSERT INTO cadet (fio, n_group, rang)
-VALUES ('Чехов', 1122, 'работник');
+INSERT INTO souls (fio, birth_year, estate, uyezd, tax)
+VALUES ('Никитин Ефим Прохорович', 1686, 'Мастеровой', 'Санкт-Петербургский', 1.20);
 
-INSERT INTO sub (name_sub) VALUES ('География'), ('Биология');
-
-INSERT INTO mark VALUES
+INSERT INTO service VALUES
 (DEFAULT,
- (SELECT id FROM cadet WHERE fio = 'Чехов' AND n_group = 1122),
- (SELECT id FROM sub WHERE name_sub = 'География'),
- 5),
+ (SELECT id FROM souls WHERE fio = 'Никитин Ефим Прохорович'),
+ (SELECT id FROM ranks WHERE class_no = 12),
+ '1722-05-01',
+ 120.00),
 (DEFAULT,
- (SELECT id FROM cadet WHERE fio = 'Чехов' AND n_group = 1122),
- (SELECT id FROM sub WHERE name_sub = 'Биология'),
- 4);
+ (SELECT id FROM souls WHERE fio = 'Никитин Ефим Прохорович'),
+ (SELECT id FROM ranks WHERE class_no = 9),
+ '1723-09-14',
+ 250.00);
 ```
 
 Обратите внимание: `DEFAULT` на месте первичного ключа – это способ сказать «возьми следующее значение из последовательности». Без него пришлось бы перечислять столбцы.
 
 ### Б) Изменение по двум подзапросам
 
-Изменить оценку по биологии у Чехова из группы 1122. Новое значение – 5.
+Никитину в девятом классе прибавили жалованье до 300 рублей.
 
 ```sql
-UPDATE mark SET mark = 5
-WHERE id_s = (SELECT id FROM sub WHERE name_sub = 'Биология')
-  AND id_c = (SELECT id FROM cadet WHERE fio = 'Чехов' AND n_group = 1122);
+UPDATE service SET salary = 300.00
+WHERE rank_id = (SELECT id FROM ranks WHERE class_no = 9)
+  AND soul_id = (SELECT id FROM souls WHERE fio = 'Никитин Ефим Прохорович');
 ```
 
 ### В) Удаление по списку из подзапроса
 
-Удалить оценки по географии и биологии у Чехова из группы 1122.
+Выяснилось, что обе записи о службе Никитина внесены по ошибке: это однофамилец. Вычеркиваем обе.
 
 ```sql
-DELETE FROM mark
-WHERE id_s IN (SELECT id FROM sub WHERE name_sub IN ('Биология', 'География'))
-  AND id_c = (SELECT id FROM cadet WHERE fio = 'Чехов' AND n_group = 1122);
+DELETE FROM service
+WHERE rank_id IN (SELECT id FROM ranks WHERE class_no IN (9, 12))
+  AND soul_id = (SELECT id FROM souls WHERE fio = 'Никитин Ефим Прохорович');
 ```
 
-Здесь важно различие: для дисциплин мы взяли `IN`, потому что их две, а для курсанта – `=`, потому что он один. Если бы мы написали `= (SELECT ... IN ('Биология', 'География'))`, команда упала бы с ошибкой «more than one row returned by a subquery used as an expression».
+Здесь важно различие: для классов мы взяли `IN`, потому что их два, а для человека – `=`, потому что он один. Если бы мы написали `= (SELECT id FROM ranks WHERE class_no IN (9, 12))`, команда упала бы с ошибкой «more than one row returned by a subquery used as an expression».
 
 <Conversation :phrases="[
     {
@@ -1559,33 +1635,31 @@ WHERE (regiment_1 = :a AND regiment_2 = :b)
 
 Речь про `jsonb` – тип, с которым мы познакомились в занятии [Встроенные функции СУБД PostgreSQL](./functions/internal.md). Там мы его **читали**. Теперь будем **менять**.
 
-### А) Книга с JSON-столбцом
+### А) Где у нас сундук
+
+Отдельную книгу заводить не нужно: столбец для повинностей заложен в ревизскую книгу с самого начала.
 
 ```sql
-DROP TABLE IF EXISTS mark, sub, cadet;
+-- Напоминание: так объявлен столбец повинностей в таблице souls
+--     dues JSONB
 
-CREATE TABLE cadet (
-    id SERIAL PRIMARY KEY,
-    fio VARCHAR (25),
-    date_b DATE,
-    n_group INT,
-    rang VARCHAR (25),
-    mark JSONB
-);
+SELECT fio, uyezd, dues FROM souls WHERE dues IS NOT NULL ORDER BY id;
 ```
+
+У каждой души в сундуке лежит свой набор: у кого одна подушная, у кого подушная с оброчной, у кого еще и постойная.
 
 ### Б) Вставка JSON-значений
 
+Пришли сказки еще по трем душам, и у каждой свой набор повинностей:
+
 ```sql
-INSERT INTO cadet VALUES
-(DEFAULT, 'Иванов',  '1700-01-21', 1122, 'работник',
-    '{"История": 5, "Химия": 5, "Физика": 4}'),
-(DEFAULT, 'Петров',  '1700-02-22', 1122, 'работник',
-    '{"История": 4, "Химия": 4, "Физика": 5}'),
-(DEFAULT, 'Сидоров', '1700-03-23', 2233, 'работник',
-    '{"История": 4, "Химия": 5, "Физика": 3}'),
-(DEFAULT, 'Попов',   '1700-04-24', 2233, 'работник',
-    '{"История": 3, "Химия": 3, "Физика": 4}');
+INSERT INTO souls (fio, birth_year, estate, uyezd, tax, dues) VALUES
+('Лыков Назар Фомич',    1684, 'Крестьянин', 'Новгородский',  0.74,
+    '{"подушная": 0.74, "оброчная": 0.40}'),
+('Дубов Прохор Лукич',   1689, 'Крестьянин', 'Олонецкий',     0.74,
+    '{"подушная": 0.74, "постойная": 0.20}'),
+('Рыбаков Ермолай Ильич', 1687, 'Мещанин',   'Московский',    1.20,
+    '{"подушная": 1.20}');
 ```
 
 JSON записывается обычной строкой в апострофах. PostgreSQL сам разберет ее и проверит на правильность: ошибетесь в скобке – получите ошибку при вставке, а не загадочную строку в таблице.
@@ -1594,11 +1668,11 @@ JSON записывается обычной строкой в апостроф�
 
 Вот где начинается новое. Менять значение внутри JSON можно, не переписывая весь объект.
 
-**Изменить существующий ключ.** Ставим Иванову из группы 1122 пятерку по физике:
+**Изменить существующий ключ.** Иванова перевели в мещане, и подушная для него стала больше:
 
 ```sql
-UPDATE cadet SET mark = mark || '{"Физика": 5}'
-WHERE fio = 'Иванов' AND n_group = 1122;
+UPDATE souls SET dues = dues || '{"подушная": 1.20}'
+WHERE fio = 'Иванов Иван Иванович';
 ```
 
 ::: info Оператор ||
@@ -1607,18 +1681,18 @@ WHERE fio = 'Иванов' AND n_group = 1122;
 Если ключ в правом объекте уже есть в левом, значение перезаписывается. Если ключа нет – он добавляется. Одна и та же команда и правит, и дописывает.
 :::
 
-**Добавить новый ключ.** Тот же оператор, тот же синтаксис:
+**Добавить новый ключ.** Тот же оператор, тот же синтаксис. На Иванова наложили подводную повинность – возить казенные грузы своей лошадью:
 
 ```sql
-UPDATE cadet SET mark = mark || '{"Биология": 5}'
-WHERE fio = 'Иванов' AND n_group = 1122;
+UPDATE souls SET dues = dues || '{"подводная": 0.15}'
+WHERE fio = 'Иванов Иван Иванович';
 ```
 
-**Удалить ключ.** Убираем у Попова из группы 2233 оценку по истории:
+**Удалить ключ.** С Козлова сняли оброчную:
 
 ```sql
-UPDATE cadet SET mark = mark - 'История'
-WHERE fio = 'Попов' AND n_group = 2233;
+UPDATE souls SET dues = dues - 'оброчная'
+WHERE fio = 'Козлов Федор Петрович';
 ```
 
 ::: info Оператор минус
@@ -1626,60 +1700,61 @@ WHERE fio = 'Попов' AND n_group = 2233;
 
 Если ключа не было, ошибки не будет: объект просто останется как есть.
 
-Чтобы удалить сразу несколько ключей, справа ставят массив: `mark - '{"История","Химия"}'::text[]`.
+Чтобы удалить сразу несколько ключей, справа ставят массив: `dues - '{"оброчная","постойная"}'::text[]`.
 :::
 
 Посмотрим, что получилось:
 
 ```sql
-SELECT fio, mark FROM cadet;
+SELECT fio, dues FROM souls
+WHERE fio IN ('Иванов Иван Иванович', 'Козлов Федор Петрович');
 ```
 
 ### Г) Поиск внутри сундука
 
-**Пятерка по физике:**
+**Кто платит подушную по 74 копейки:**
 
 ```sql
-SELECT * FROM cadet WHERE mark @> '{"Физика": 5}';
+SELECT fio, uyezd FROM souls WHERE dues @> '{"подушная": 0.74}';
 ```
 
 ::: info Оператор @>
 Оператор `@>` позволяет проверить, **содержит ли первое JSON-значение второе**.
 
-Он проверяет и ключ, и значение одновременно. То есть `mark @> '{"Физика": 5}'` означает «в сундуке есть физика, и она равна пяти».
+Он проверяет и ключ, и значение одновременно. То есть `dues @> '{"подушная": 0.74}'` означает «в сундуке есть подушная, и она равна 0.74».
 :::
 
-**Пятерка по физике ИЛИ по химии:**
+**Кто платит оброчную ИЛИ постойную:**
 
 ```sql
-SELECT * FROM cadet
-WHERE mark @> '{"Химия": 5}' OR mark @> '{"Физика": 5}';
+SELECT fio, dues FROM souls
+WHERE dues @> '{"оброчная": 0.40}' OR dues @> '{"постойная": 0.20}';
 ```
 
-**Пятерка И по физике, И по химии:**
+**Кто платит И подушную по 74 копейки, И оброчную:**
 
 ```sql
-SELECT * FROM cadet WHERE mark @> '{"Химия": 5, "Физика": 5}';
+SELECT fio, dues FROM souls WHERE dues @> '{"подушная": 0.74, "оброчная": 0.40}';
 ```
 
 Обратите внимание на изящество: «и то, и то» – это не два условия через `AND`, а один объект с двумя ключами. `@>` требует, чтобы содержалось все перечисленное.
 
-**Есть ли оценка по биологии вообще:**
+**На кого вообще наложена подводная повинность:**
 
 ```sql
-SELECT * FROM cadet WHERE mark ? 'Биология';
+SELECT fio, dues FROM souls WHERE dues ? 'подводная';
 ```
 
 ::: info Оператор вопросительный знак
 Оператор `?` позволяет проверить, **присутствует ли текстовая строка в значении JSON в качестве ключа**.
 
-Здесь нас не интересует, какая именно оценка – только сам факт, что такой ключ в сундуке есть.
+Здесь нас не интересует, сколько именно начислено – только сам факт, что такая повинность в сундуке есть.
 :::
 
 То же самое можно сделать и грубее, через текстовый поиск:
 
 ```sql
-SELECT * FROM cadet WHERE LOWER(mark::TEXT) LIKE '%био%';
+SELECT fio FROM souls WHERE LOWER(dues::TEXT) LIKE '%подвод%';
 ```
 
 Но этот способ хуже по двум причинам. Во-первых, он найдет совпадение и в ключе, и в значении, и даже в середине чужого слова. Во-вторых, он не сможет воспользоваться индексом и заставит базу перечитать всю таблицу.
@@ -1689,7 +1764,7 @@ SELECT * FROM cadet WHERE LOWER(mark::TEXT) LIKE '%био%';
 Для сундуков с JSONB заводят особый указатель – индекс GIN:
 
 ```sql
-CREATE INDEX idx_cadet_mark ON cadet USING GIN (mark);
+CREATE INDEX idx_souls_dues ON souls USING GIN (dues);
 ```
 
 Операторы `@>` и `?` им пользуются и находят нужное мгновенно. А `LIKE` по тексту сундука не пользуется ничем и перебирает все подряд.
@@ -1734,7 +1809,7 @@ CREATE INDEX idx_cadet_mark ON cadet USING GIN (mark);
 1. **Вставлять данные (`INSERT`)**: с полным списком столбцов, с сокращенным, без списка вовсе и в сокращенной форме PostgreSQL. И почему первый способ – единственный, которому можно доверять в рабочем коде.
 2. **Вставлять пакетами и из запроса (`INSERT ... SELECT`)**: одной командой вместо тысячи, и перекладывать данные внутри базы, не вытаскивая их в приложение.
 3. **Пользоваться значениями по умолчанию**: `DEFAULT` при создании таблицы, ключевое слово `DEFAULT` при вставке, и `SERIAL` как частный случай значения по умолчанию.
-4. **Понимать, как ограничения ведут себя при вставке**: что ловит `NOT NULL`, что ловит `CHECK`, что ловит составной `UNIQUE`, и главное – почему `CHECK (salary > 0)` пропускает `NULL`.
+4. **Понимать, как ограничения ведут себя при вставке**: что ловит `NOT NULL`, что ловит `CHECK`, что ловит составной `UNIQUE`, и главное – почему `CHECK (tax > 0)` пропускает `NULL`.
 5. **Обрабатывать конфликты (`ON CONFLICT`)**: молча пропускать дубль или обновлять существующую строку через `EXCLUDED`.
 6. **Изменять данные (`UPDATE`)**: один столбец и несколько, относительно старого значения, в `NULL`, и через подзапрос.
 7. **Удалять данные (`DELETE`, `TRUNCATE`)**: точечно, по составному условию, и понимать, чем `TRUNCATE` принципиально отличается от `DELETE`.
