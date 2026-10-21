@@ -173,23 +173,13 @@ export default withMermaid(
               items: [
                 {
                   collapsed: true,
-                  text: "Организация данных в СУБД PostgreSQL",
-                  link: "/databases/administration/essentials",
-                },
-                {
-                  collapsed: true,
-                  text: "Работа со средствами администрирования СУБД PostgreSQL",
-                  link: "/databases/administration/tooling",
-                },
-                {
-                  collapsed: true,
-                  text: "Управление доступом к объектам БД",
-                  link: "/databases/administration/access-control",
-                },
-                {
-                  collapsed: true,
-                  text: "Конфигурирование сервера",
-                  link: "/databases/administration/configuration",
+                  text: "Разработка объектов базы данных",
+                  items: [
+                    {
+                      text: "Базы данных, схемы и табличные пространства",
+                      link: "/databases/administration/databases-schemas-tablespaces",
+                    },
+                  ],
                 },
               ],
             },
