@@ -189,6 +189,24 @@ export default withMermaid(
                     },
                   ],
                 },
+                {
+                  collapsed: true,
+                  text: "Администрирование и защита базы данных",
+                  items: [
+                    {
+                      text: "Управление доступом к объектам базы данных",
+                      link: "/databases/administration/roles-and-privileges",
+                    },
+                    {
+                      text: "Конфигурирование сервера и удаленное подключение",
+                      link: "/databases/administration/server-configuration",
+                    },
+                    {
+                      text: "Резервное копирование и восстановление",
+                      link: "/databases/administration/backup-and-restore",
+                    },
+                  ],
+                },
               ],
             },
             {
