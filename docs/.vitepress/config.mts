@@ -179,6 +179,14 @@ export default withMermaid(
                       text: "Базы данных, схемы и табличные пространства",
                       link: "/databases/administration/databases-schemas-tablespaces",
                     },
+                    {
+                      text: "Индексы и представления",
+                      link: "/databases/administration/indexes-and-views",
+                    },
+                    {
+                      text: "Управление транзакциями",
+                      link: "/databases/administration/transactions",
+                    },
                   ],
                 },
               ],
